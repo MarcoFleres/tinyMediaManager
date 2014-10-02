@@ -29,10 +29,12 @@ public class IconManager {
   public final static ImageIcon  CANCEL            = loadImage("cancel.png");
   public final static ImageIcon  CHECK_ALL         = loadImage("check-all.png");
   public final static ImageIcon  CHECKMARK         = loadImage("checkmark.png");
-  public final static ImageIcon  CLAPBOARD         = loadImage("clapboard.png");
+  public final static ImageIcon  CLAPBOARD         = loadImage("icn_trailer.png");
   public final static ImageIcon  COPY              = loadImage("copy.png");
   public final static ImageIcon  CROSS             = loadImage("cross.png");
   public final static ImageIcon  DELETE            = loadImage("delete.png");
+  public final static ImageIcon  DOT_AVAILABLE     = loadImage("dot_available.png");
+  public final static ImageIcon  DOT_UNAVAILABLE   = loadImage("dot_unavailable.png");
   public final static ImageIcon  DOWNLOAD          = loadImage("download.png");
   public final static ImageIcon  DOWNLOAD_DISABLED = loadImage("download-disabled.png");
   public final static ImageIcon  EDIT              = loadImage("edit.png");
@@ -42,8 +44,8 @@ public class IconManager {
   public final static ImageIcon  FEEDBACK          = loadImage("feedback.png");
   public final static ImageIcon  FILE_OPEN         = loadImage("file-open.png");
   public final static ImageIcon  FILTER            = loadImage("filter.png");
-  public final static ImageIcon  IMAGE             = loadImage("image.png");
-  public final static ImageIcon  INFO              = loadImage("info.png");
+  public final static ImageIcon  IMAGE             = loadImage("icn_images.png");
+  public final static ImageIcon  INFO              = loadImage("icn_nfo.png");
   public final static ImageIcon  LIST_ADD          = loadImage("list-add.png");
   public final static ImageIcon  LIST_REMOVE       = loadImage("list-remove.png");
   public final static ImageIcon  LOADING           = loadImage("loading.gif");
@@ -56,7 +58,7 @@ public class IconManager {
   public final static ImageIcon  SETTINGS_SMALL    = loadImage("settings-small.png");
   public final static ImageIcon  STAR_FILLED       = loadImage("star-filled.png");
   public final static ImageIcon  STAR_EMPTY        = loadImage("star-empty.png");
-  public final static ImageIcon  SUBTITLE          = loadImage("subtitle.png");
+  public final static ImageIcon  SUBTITLE          = loadImage("icn_subs.png");
   public final static ImageIcon  SYNC              = loadImage("sync.png");
   public final static ImageIcon  UNCHECK_ALL       = loadImage("uncheck-all.png");
   public final static ImageIcon  UNWATCHED         = loadImage("unwatched.png");

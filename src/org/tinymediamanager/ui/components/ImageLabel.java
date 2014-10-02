@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.imgscalr.Scalr;
 import org.tinymediamanager.core.ImageCache;
 import org.tinymediamanager.scraper.util.Url;
+import org.tinymediamanager.thirdparty.ShadowRenderer;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
@@ -68,6 +69,7 @@ public class ImageLabel extends JLabel {
   protected boolean                          drawFullWidth;
   protected boolean                          enabledLightbox  = false;
   protected boolean                          useCache         = true;
+  protected boolean                          drawShadow;
 
   protected SwingWorker<BufferedImage, Void> worker           = null;
   protected MouseListener                    lightboxListener = null;
@@ -99,6 +101,13 @@ public class ImageLabel extends JLabel {
     super("");
     this.drawBorder = drawBorder;
     this.drawFullWidth = drawFullWidth;
+  }
+
+  public ImageLabel(boolean drawBorder, boolean drawFullWidth, boolean drawShadow) {
+    super("");
+    this.drawBorder = drawBorder;
+    this.drawFullWidth = drawFullWidth;
+    this.drawShadow = drawShadow;
   }
 
   public String getImagePath() {
@@ -190,7 +199,7 @@ public class ImageLabel extends JLabel {
       int offsetX = 0;
       int offsetY = 0;
 
-      if (drawBorder && !drawFullWidth) {
+      if (drawBorder && !drawFullWidth && !drawShadow) {
         Point size = ImageCache.calculateSize(this.getWidth() - 8, this.getHeight() - 8, originalWidth, originalHeight, true);
 
         // calculate offsets
@@ -216,6 +225,19 @@ public class ImageLabel extends JLabel {
         g.fillRect(offsetX + 1, offsetY + 1, size.x + 6, size.y + 6);
         // g.drawImage(Scaling.scale(originalImage, newWidth, newHeight), offsetX + 4, offsetY + 4, newWidth, newHeight, this);
         g.drawImage(getScaledImage(new Dimension(newWidth, newHeight)), offsetX + 4, offsetY + 4, newWidth, newHeight, this);
+      }
+      else if (drawShadow && !drawFullWidth) {
+        Point size = ImageCache.calculateSize(this.getWidth(), this.getHeight(), originalWidth, originalHeight, true);
+        newWidth = size.x;
+        newHeight = size.y;
+        ShadowRenderer shadow = new ShadowRenderer(8, 0.3f, Color.BLACK);
+        BufferedImage scaledImage = getScaledImage(new Dimension(this.getWidth() - 8, this.getHeight() - 8));
+        BufferedImage shadowImage = shadow.createShadow(scaledImage);
+
+        // draw shadow
+        g.drawImage(shadowImage, 8, 8, newWidth - 8, newHeight - 8, this);
+        // draw image
+        g.drawImage(scaledImage, 0, 0, newWidth - 8, newHeight - 8, this);
       }
       else {
         Point size = null;

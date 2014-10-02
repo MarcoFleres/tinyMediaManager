@@ -52,13 +52,16 @@ import com.jgoodies.forms.layout.RowSpec;
 public class ImagePanel extends JPanel implements HierarchyListener {
   private static final long   serialVersionUID = -5344085698387374260L;
   private static final Logger LOGGER           = LoggerFactory.getLogger(ImagePanel.class);
-  private List<MediaFile>     mediaFiles       = null;
+
+  protected int               maxWidth         = 300;
+  protected int               maxHeight        = 100;
+  protected List<MediaFile>   mediaFiles       = null;
+
   private ImageLoader         activeWorker     = null;
 
   /**
    * UI components
    */
-
   private JPanel              panelImages;
   private JScrollPane         scrollPane;
 
@@ -111,6 +114,22 @@ public class ImagePanel extends JPanel implements HierarchyListener {
     super.removeNotify();
   }
 
+  public int getMaxWidth() {
+    return maxWidth;
+  }
+
+  public int getMaxHeight() {
+    return maxHeight;
+  }
+
+  public void setMaxWidth(int maxWidth) {
+    this.maxWidth = maxWidth;
+  }
+
+  public void setMaxHeight(int maxHeight) {
+    this.maxHeight = maxHeight;
+  }
+
   /**
    * worker to load the images asynchrony
    */
@@ -132,8 +151,7 @@ public class ImagePanel extends JPanel implements HierarchyListener {
             File file = ImageCache.getCachedFile(mediaFile.getFile().getAbsolutePath());
             LOGGER.debug("loading " + file);
             BufferedImage bufferedImage = com.bric.image.ImageLoader.createImage(file);
-            Point size = ImageCache.calculateSize(300, 100, bufferedImage.getWidth(), bufferedImage.getHeight(), true);
-            // BufferedImage img = Scaling.scale(bufferedImage, size.x, size.y);
+            Point size = ImageCache.calculateSize(maxWidth, maxHeight, bufferedImage.getWidth(), bufferedImage.getHeight(), true);
             BufferedImage img = Scalr.resize(bufferedImage, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, size.x, size.y, Scalr.OP_ANTIALIAS);
             bufferedImage = null;
 

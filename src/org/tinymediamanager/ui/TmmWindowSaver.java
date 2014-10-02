@@ -33,7 +33,6 @@ import javax.swing.JFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tinymediamanager.ui.movies.MoviePanel;
 
 /**
  * The Class TmmWindowSaver. To save window/dialog settings (like size/position)
@@ -139,16 +138,6 @@ public class TmmWindowSaver implements AWTEventListener {
           frame.setLocationRelativeTo(null);
         }
       }
-
-      // sliders
-      MainWindow mainWindow = (MainWindow) frame;
-      MoviePanel moviePanel = mainWindow.getMoviePanel();
-      if (getInteger("movieWindowSlider1") > 0) {
-        moviePanel.getSplitPaneVertical().setDividerLocation(getInteger("movieWindowSlider1"));
-      }
-      if (getInteger("movieWindowSlider2") > 0) {
-        moviePanel.getSplitPaneHorizontal().setDividerLocation(getInteger("movieWindowSlider2"));
-      }
     }
   }
 
@@ -178,12 +167,6 @@ public class TmmWindowSaver implements AWTEventListener {
     if ("mainWindow".equals(frame.getName()) && frame instanceof MainWindow) {
       addParam("mainWindowMaximized", (frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH);
       storeWindowBounds("mainWindow", frame.getX(), frame.getY(), frame.getWidth(), frame.getHeight());
-
-      // sliders
-      MainWindow mainWindow = (MainWindow) frame;
-      MoviePanel moviePanel = mainWindow.getMoviePanel();
-      addParam("movieWindowSlider1", moviePanel.getSplitPaneVertical().getDividerLocation());
-      addParam("movieWindowSlider2", moviePanel.getSplitPaneHorizontal().getDividerLocation());
       writeProperties();
     }
   }

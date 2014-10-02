@@ -82,6 +82,7 @@ import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.TmmUILogCollector;
 import org.tinymediamanager.ui.TmmWindowSaver;
 import org.tinymediamanager.ui.dialogs.WhatsNewDialog;
+import org.tinymediamanager.ui.plaf.light.TmmLightLookAndFeel;
 
 import chrriis.dj.nativeswing.swtimpl.NativeInterface;
 
@@ -533,20 +534,27 @@ public class TinyMediaManager {
         fontString = fontFamily + " " + fontSize;
 
         props.setProperty("subTextFont", fontString);
-        props.setProperty("backgroundColor", "237 237 237");
-        props.setProperty("menuBackgroundColor", "237 237 237");
-        props.setProperty("controlBackgroundColor", "237 237 237");
-        props.setProperty("menuColorLight", "237 237 237");
-        props.setProperty("menuColorDark", "237 237 237");
-        props.setProperty("toolbarColorLight", "237 237 237");
-        props.setProperty("toolbarColorDark", "237 237 237");
-        props.setProperty("tooltipBackgroundColor", "255 255 255");
-        props.put("windowDecoration", "system");
-        props.put("logoString", "");
+        // props.setProperty("backgroundColor", "237 237 237");
+        // props.setProperty("menuBackgroundColor", "237 237 237");
+        // props.setProperty("controlBackgroundColor", "237 237 237");
+        // props.setProperty("menuColorLight", "237 237 237");
+        // props.setProperty("menuColorDark", "237 237 237");
+        // props.setProperty("toolbarColorLight", "237 237 237");
+        // props.setProperty("toolbarColorDark", "237 237 237");
+        // props.setProperty("tooltipBackgroundColor", "255 255 255");
+        // props.put("windowDecoration", "system");
+        // props.put("logoString", "");
+
+        // // Get the look and feel class name
+        // com.jtattoo.plaf.luna.LunaLookAndFeel.setTheme(props);
+        // String laf = "com.jtattoo.plaf.luna.LunaLookAndFeel";
+        //
+        // // Install the look and feel
+        // UIManager.setLookAndFeel(laf);
 
         // Get the look and feel class name
-        com.jtattoo.plaf.luna.LunaLookAndFeel.setTheme(props);
-        String laf = "com.jtattoo.plaf.luna.LunaLookAndFeel";
+        TmmLightLookAndFeel.setTheme(props);
+        String laf = "org.tinymediamanager.ui.plaf.light.TmmLightLookAndFeel";
 
         // Install the look and feel
         UIManager.setLookAndFeel(laf);

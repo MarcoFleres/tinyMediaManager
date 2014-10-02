@@ -16,16 +16,23 @@
 package org.tinymediamanager.ui;
 
 import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -33,59 +40,37 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import javax.swing.SwingWorker.StateValue;
 import javax.swing.Timer;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.Globals;
-import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.Message.MessageLevel;
 import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.TmmModuleManager;
 import org.tinymediamanager.core.UpdaterTask;
 import org.tinymediamanager.core.Utils;
-import org.tinymediamanager.core.WolDevice;
 import org.tinymediamanager.core.threading.TmmTaskManager;
-import org.tinymediamanager.ui.actions.AboutAction;
-import org.tinymediamanager.ui.actions.BugReportAction;
-import org.tinymediamanager.ui.actions.ClearDatabaseAction;
-import org.tinymediamanager.ui.actions.ClearImageCacheAction;
-import org.tinymediamanager.ui.actions.ClearUrlCacheAction;
-import org.tinymediamanager.ui.actions.DonateAction;
-import org.tinymediamanager.ui.actions.ExitAction;
-import org.tinymediamanager.ui.actions.FaqAction;
-import org.tinymediamanager.ui.actions.FeedbackAction;
-import org.tinymediamanager.ui.actions.ForumAction;
-import org.tinymediamanager.ui.actions.RebuildImageCacheAction;
-import org.tinymediamanager.ui.actions.RegisterDonatorVersionAction;
-import org.tinymediamanager.ui.actions.SettingsAction;
 import org.tinymediamanager.ui.components.LightBoxPanel;
-import org.tinymediamanager.ui.components.StatusBar;
+import org.tinymediamanager.ui.components.MainTabbedPane;
 import org.tinymediamanager.ui.components.TextFieldPopupMenu;
-import org.tinymediamanager.ui.components.VerticalTextIcon;
-import org.tinymediamanager.ui.dialogs.LogDialog;
-import org.tinymediamanager.ui.movies.MoviePanel;
-import org.tinymediamanager.ui.moviesets.MovieSetPanel;
-import org.tinymediamanager.ui.tvshows.TvShowPanel;
+import org.tinymediamanager.ui.components.ToolbarPanel;
+import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.moviesets.MovieSetUIModule;
+import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 import ch.swingfx.twinkle.NotificationBuilder;
 import ch.swingfx.twinkle.window.Positions;
@@ -94,6 +79,7 @@ import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
+import com.jtattoo.plaf.BaseRootPaneUI;
 
 /**
  * The Class MainWindow.
@@ -101,46 +87,33 @@ import com.jgoodies.forms.layout.RowSpec;
  * @author Manuel Laggner
  */
 public class MainWindow extends JFrame {
+  private static final long           serialVersionUID = 5032542783902644134L;
   private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control());                   //$NON-NLS-1$
   private final static Logger         LOGGER           = LoggerFactory.getLogger(MainWindow.class);
-  private static final long           serialVersionUID = 1L;
 
   public final static Image           LOGO             = Toolkit.getDefaultToolkit().getImage(
                                                            MainWindow.class.getResource("/org/tinymediamanager/ui/images/tmm.png"));
 
-  /** The action about. */
-  private final Action                actionAbout      = new AboutAction();
-
-  /** The action feedback. */
-  private final Action                actionFeedback   = new FeedbackAction();
-
-  /** The action bug report. */
-  private final Action                actionBugReport  = new BugReportAction();
-
-  /** The action donate. */
-  private final Action                actionDonate     = new DonateAction();
-
-  /** The instance. */
   private static MainWindow           instance;
+
+  private ToolbarPanel                toolbarPanel;
+  private JPanel                      rootPanel;
+  private JTabbedPane                 tabbedPane;
+  private JPanel                      detailPanel;
+  private JLayeredPane                layeredPane;
 
   /** The panel movies. */
   private JPanel                      panelMovies;
   private JPanel                      panelMovieSets;
   private JPanel                      panelTvShows;
 
-  /** The panel status bar. */
   private JPanel                      panelStatusBar;
 
-  /** The lbl loading img. */
   private JLabel                      lblLoadingImg;
 
-  /** The status task. */
-  // private StatusbarThread statusTask;
   private List<String>                messagesList;
 
   private LightBoxPanel               lightBoxPanel;
-
-  private JDialog                     settingsDialog;
 
   /**
    * Create the application.
@@ -151,235 +124,110 @@ public class MainWindow extends JFrame {
   public MainWindow(String name) {
     super(name);
     setName("mainWindow");
-    setMinimumSize(new Dimension(1000, 700));
+    setIconImage(LOGO);
+    setMinimumSize(new Dimension(1100, 700));
 
     instance = this;
-    lightBoxPanel = new LightBoxPanel();
-
-    JMenuBar menuBar = new JMenuBar();
-    setJMenuBar(menuBar);
-
-    JMenu mnTmm = new JMenu("tinyMediaManager");
-    mnTmm.setMnemonic(KeyEvent.VK_T);
-    menuBar.add(mnTmm);
-
-    if (!Globals.isDonator()) {
-      mnTmm.add(new RegisterDonatorVersionAction());
-    }
-    mnTmm.add(new SettingsAction());
-    mnTmm.addSeparator();
-    mnTmm.add(new ExitAction());
     initialize();
 
-    // tools menu
-    JMenu tools = new JMenu(BUNDLE.getString("tmm.tools")); //$NON-NLS-1$
-    tools.setMnemonic(KeyEvent.VK_O);
-    tools.add(new ClearDatabaseAction());
-
-    JMenu cache = new JMenu(BUNDLE.getString("tmm.cache")); //$NON-NLS-1$
-    cache.setMnemonic(KeyEvent.VK_C);
-    tools.add(cache);
-
-    JMenuItem clearUrlCache = new JMenuItem(new ClearUrlCacheAction());
-    clearUrlCache.setMnemonic(KeyEvent.VK_U);
-    cache.add(clearUrlCache);
-    cache.addSeparator();
-    JMenuItem clearImageCache = new JMenuItem(new ClearImageCacheAction());
-    clearImageCache.setMnemonic(KeyEvent.VK_I);
-    cache.add(clearImageCache);
-
-    JMenuItem rebuildImageCache = new JMenuItem(new RebuildImageCacheAction());
-    rebuildImageCache.setMnemonic(KeyEvent.VK_R);
-    cache.add(rebuildImageCache);
-
-    JMenuItem tmmFolder = new JMenuItem(BUNDLE.getString("tmm.gotoinstalldir")); //$NON-NLS-1$
-    tmmFolder.setMnemonic(KeyEvent.VK_I);
-    tools.add(tmmFolder);
-    tmmFolder.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        File path = new File(System.getProperty("user.dir"));
-        try {
-          // check whether this location exists
-          if (path.exists()) {
-            TmmUIHelper.openFile(path);
-          }
-        }
-        catch (Exception ex) {
-          LOGGER.error("open filemanager", ex);
-          MessageManager.instance.pushMessage(new Message(MessageLevel.ERROR, path, "message.erroropenfolder", new String[] { ":",
-              ex.getLocalizedMessage() }));
-        }
-      }
-    });
-
-    JMenuItem tmmLogs = new JMenuItem(BUNDLE.getString("tmm.errorlogs")); //$NON-NLS-1$
-    tmmLogs.setMnemonic(KeyEvent.VK_L);
-    tools.add(tmmLogs);
-    tmmLogs.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        JDialog logDialog = new LogDialog();
-        logDialog.setLocationRelativeTo(MainWindow.getActiveInstance());
-        logDialog.setVisible(true);
-      }
-    });
-
-    tools.addSeparator();
-    final JMenu menuWakeOnLan = new JMenu(BUNDLE.getString("tmm.wakeonlan")); //$NON-NLS-1$
-    menuWakeOnLan.setMnemonic(KeyEvent.VK_W);
-    menuWakeOnLan.addMenuListener(new MenuListener() {
-      @Override
-      public void menuCanceled(MenuEvent arg0) {
-      }
-
-      @Override
-      public void menuDeselected(MenuEvent arg0) {
-      }
-
-      @Override
-      public void menuSelected(MenuEvent arg0) {
-        menuWakeOnLan.removeAll();
-        for (final WolDevice device : Globals.settings.getWolDevices()) {
-          JMenuItem item = new JMenuItem(device.getName());
-          item.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-              Utils.sendWakeOnLanPacket(device.getMacAddress());
-            }
-          });
-          menuWakeOnLan.add(item);
-        }
-      }
-    });
-    tools.add(menuWakeOnLan);
-
-    menuBar.add(tools);
-
-    mnTmm = new JMenu(BUNDLE.getString("tmm.contact")); //$NON-NLS-1$
-    mnTmm.setMnemonic(KeyEvent.VK_C);
-    JMenuItem mntmFeedback = mnTmm.add(actionFeedback);
-    mntmFeedback.setMnemonic(KeyEvent.VK_F);
-
-    JMenuItem mntmBugReport = mnTmm.add(actionBugReport);
-    mntmBugReport.setText(BUNDLE.getString("BugReport")); //$NON-NLS-1$
-    mntmBugReport.setMnemonic(KeyEvent.VK_B);
-    menuBar.add(mnTmm);
-
-    mnTmm = new JMenu(BUNDLE.getString("tmm.help")); //$NON-NLS-1$
-    mnTmm.setMnemonic(KeyEvent.VK_H);
-    menuBar.add(mnTmm);
-
-    JMenuItem mntmFaq = mnTmm.add(new FaqAction());
-    mntmFaq.setMnemonic(KeyEvent.VK_F);
-
-    JMenuItem mntmForum = mnTmm.add(new ForumAction());
-    mntmForum.setMnemonic(KeyEvent.VK_O);
-
-    mnTmm.addSeparator();
-    JMenuItem mntmAbout = mnTmm.add(actionAbout);
-    mntmAbout.setMnemonic(KeyEvent.VK_A);
-
-    menuBar.add(Box.createGlue());
-
-    JButton btnDonate = new JButton(actionDonate);
-    btnDonate.setBorderPainted(false);
-    btnDonate.setFocusPainted(false);
-    btnDonate.setContentAreaFilled(false);
-    menuBar.add(btnDonate);
-
-    // Globals.executor.execute(new MyStatusbarThread());
-    // use a Future to be able to cancel it
-    // statusTask.execute();
     checkForUpdate();
   }
 
-  private void checkForUpdate() {
-    try {
-      final SwingWorker<Boolean, Void> updateWorker = new UpdaterTask();
-
-      updateWorker.addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent evt) {
-          if ("state".equals(evt.getPropertyName()) && evt.getNewValue() == StateValue.DONE) {
-            try {
-              boolean update = updateWorker.get();
-              LOGGER.debug("update result was: " + update);
-              if (update) {
-                int answer = JOptionPane.showConfirmDialog(null, BUNDLE.getString("tmm.update.message"), BUNDLE.getString("tmm.update.title"),
-                    JOptionPane.YES_NO_OPTION);
-                if (answer == JOptionPane.OK_OPTION) {
-                  LOGGER.info("Updating...");
-
-                  // spawn getdown and exit TMM
-                  closeTmmAndStart(Utils.getPBforTMMupdate());
-                }
-              }
-            }
-            catch (Exception e) {
-              LOGGER.error("Update task failed!" + e.getMessage());
-            }
-          }
-        }
-      });
-
-      // update task start a few secs after GUI...
-      Timer timer = new Timer(5000, new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          updateWorker.execute();
-        }
-      });
-      timer.setRepeats(false);
-      timer.start();
-    }
-    catch (Exception e) {
-      LOGGER.error("Update task failed!" + e.getMessage());
-    }
-  }
-
-  /**
+  /*
    * Initialize the contents of the frame.
    */
   private void initialize() {
-    // set the logo
-    setIconImage(LOGO);
-    setBounds(5, 5, 1100, 727);
+    lightBoxPanel = new LightBoxPanel();
     // do nothing, we have our own windowClosing() listener
-    // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-    getContentPane().setLayout(
-        new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), ColumnSpec.decode("1dlu"), }, new RowSpec[] {
-            FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("fill:max(500px;default):grow"), FormFactory.NARROW_LINE_GAP_ROWSPEC,
-            FormFactory.DEFAULT_ROWSPEC, }));
+    toolbarPanel = new ToolbarPanel();
 
-    JLayeredPane content = new JLayeredPane();
-    content.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), FormFactory.RELATED_GAP_COLSPEC,
-        ColumnSpec.decode("right:270px"), }, new RowSpec[] { RowSpec.decode("fill:max(500px;default):grow"), }));
-    getContentPane().add(content, "1, 2, fill, fill");
+    // Customize the titlebar. This could only be done if one of the JTattoo look and feels is active. So check this first.
+    if (getRootPane().getUI() instanceof BaseRootPaneUI) {
+      BaseRootPaneUI rootPaneUI = (BaseRootPaneUI) getRootPane().getUI();
+      // Here is the magic. Just add the panel to the titlebar
+      rootPaneUI.setTitlePane(getRootPane(), toolbarPanel);
+    }
+    else {
+      // put the toolbar on the top
+      getContentPane().add(toolbarPanel, BorderLayout.NORTH);
+    }
 
-    JPanel mainPanel = new JPanel();
-    mainPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow") }, new RowSpec[] { RowSpec
-        .decode("fill:max(500px;default):grow") }));
-    content.add(mainPanel, "1, 1, 3, 1, fill, fill");
-    content.setLayer(mainPanel, 1);
+    layeredPane = new JLayeredPane();
+    layeredPane.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("70dlu:grow") }, new RowSpec[] { RowSpec.decode("5dlu"),
+        RowSpec.decode("fill:500px:grow") }));
+    getContentPane().add(layeredPane);
 
-    JTabbedPane tabbedPane = VerticalTextIcon.createTabbedPane(JTabbedPane.LEFT);
-    tabbedPane.setTabPlacement(JTabbedPane.LEFT);
-    mainPanel.add(tabbedPane, "1, 1, fill, fill");
-    // getContentPane().add(tabbedPane, "1, 2, fill, fill");
+    rootPanel = new JPanel();
+    rootPanel.putClientProperty("class", "rootPanel");
+    layeredPane.setLayer(rootPanel, 1);
+    layeredPane.add(rootPanel, "1, 1, 1, 2, fill, fill");
 
-    panelStatusBar = new StatusBar();
-    getContentPane().add(panelStatusBar, "1, 4");
+    rootPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("12dlu"), ColumnSpec.decode("max(50dlu;default):grow"),
+        ColumnSpec.decode("12dlu"), }, new RowSpec[] { RowSpec.decode("fill:500px:grow"), RowSpec.decode("10dlu"), }));
 
-    panelMovies = new MoviePanel();
-    VerticalTextIcon.addTab(tabbedPane, BUNDLE.getString("tmm.movies"), panelMovies); //$NON-NLS-1$
+    JSplitPane splitPane = new JSplitPane();
+    splitPane.setContinuousLayout(true);
+    splitPane.setOpaque(false);
+    splitPane.putClientProperty("flatMode", true);
+    rootPanel.add(splitPane, "2, 1, fill, fill");
 
-    panelMovieSets = new MovieSetPanel();
-    VerticalTextIcon.addTab(tabbedPane, BUNDLE.getString("tmm.moviesets"), panelMovieSets); //$NON-NLS-1$
+    JPanel leftPanel = new JPanel();
+    leftPanel.putClientProperty("class", "roundedPanel");
+    leftPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), }, new RowSpec[] { RowSpec.decode("fill:default:grow"),
+        FormFactory.RELATED_GAP_ROWSPEC, }));
+    tabbedPane = new MainTabbedPane();
+    leftPanel.add(tabbedPane, "1, 1, fill, fill");
+    splitPane.setLeftComponent(leftPanel);
 
-    panelTvShows = new TvShowPanel();
-    VerticalTextIcon.addTab(tabbedPane, BUNDLE.getString("tmm.tvshows"), panelTvShows); //$NON-NLS-1$
+    JPanel rightPanel = new JPanel();
+    rightPanel.putClientProperty("class", "roundedPanel");
+    rightPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("750px:grow(3)"), }, new RowSpec[] { RowSpec.decode("fill:200px:grow"),
+        FormFactory.RELATED_GAP_ROWSPEC, }));
+    detailPanel = new JPanel();
+    detailPanel.setLayout(new CardLayout(0, 0));
+    rightPanel.add(detailPanel, "1, 1, fill, fill");
+    splitPane.setRightComponent(rightPanel);
+
+    // to draw the shadow beneath the toolbar
+    JPanel shadowPanel = new JPanel() {
+      private static final long serialVersionUID = 7962076698737494666L;
+
+      @Override
+      public void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GradientPaint gp = new GradientPaint(0, 0, new Color(32, 32, 32, 80), 0, 4, new Color(0, 0, 0, 0));
+        g2.setPaint(gp);
+        g2.fill(new Rectangle2D.Double(getX(), getY(), getX() + getWidth(), getY() + getHeight()));
+      }
+    };
+    shadowPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow") }, new RowSpec[] { RowSpec.decode("5dlu") }));
+    layeredPane.setLayer(shadowPanel, 2);
+    layeredPane.add(shadowPanel, "1, 1, fill, fill");
+
+    addModule(MovieUIModule.getInstance());
+    toolbarPanel.setUIModule(MovieUIModule.getInstance());
+    addModule(MovieSetUIModule.getInstance());
+    addModule(TvShowUIModule.getInstance());
+
+    ChangeListener changeListener = new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent changeEvent) {
+        JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
+        if (sourceTabbedPane.getSelectedComponent() instanceof ITmmTabItem) {
+          ITmmTabItem activeTab = (ITmmTabItem) sourceTabbedPane.getSelectedComponent();
+          toolbarPanel.setUIModule(activeTab.getUIModule());
+          CardLayout cl = (CardLayout) detailPanel.getLayout();
+          cl.show(detailPanel, activeTab.getUIModule().getModuleId());
+        }
+      }
+    };
+    tabbedPane.addChangeListener(changeListener);
+
+    // message panel
+    MessageManager.instance.addListener(new UIMessageListener());
 
     // shutdown listener - to clean database connections safely
     addWindowListener(new WindowAdapter() {
@@ -403,6 +251,11 @@ public class MainWindow extends JFrame {
         }
       }
     }, AWTEvent.MOUSE_EVENT_MASK);
+  }
+
+  private void addModule(ITmmUIModule module) {
+    tabbedPane.addTab(module.getTabTitle(), module.getTabPanel());
+    detailPanel.add(module.getDetailPanel(), module.getModuleId());
   }
 
   public void closeTmm() {
@@ -455,30 +308,51 @@ public class MainWindow extends JFrame {
     }
   }
 
-  /**
-   * Gets the active instance.
-   * 
-   * @return the active instance
-   */
+  private void checkForUpdate() {
+    try {
+      final SwingWorker<Boolean, Void> updateWorker = new UpdaterTask();
+
+      updateWorker.addPropertyChangeListener(new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent evt) {
+          if ("state".equals(evt.getPropertyName()) && evt.getNewValue() == StateValue.DONE) {
+            try {
+              boolean update = updateWorker.get();
+              LOGGER.debug("update result was: " + update);
+              if (update) {
+                int answer = JOptionPane.showConfirmDialog(null, BUNDLE.getString("tmm.update.message"), BUNDLE.getString("tmm.update.title"),
+                    JOptionPane.YES_NO_OPTION);
+                if (answer == JOptionPane.OK_OPTION) {
+                  LOGGER.info("Updating...");
+
+                  // spawn getdown and exit TMM
+                  closeTmmAndStart(Utils.getPBforTMMupdate());
+                }
+              }
+            }
+            catch (Exception e) {
+              LOGGER.error("Update task failed!" + e.getMessage());
+            }
+          }
+        }
+      });
+
+      // update task start a few secs after GUI...
+      Timer timer = new Timer(5000, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          updateWorker.execute();
+        }
+      });
+      timer.setRepeats(false);
+      timer.start();
+    }
+    catch (Exception e) {
+      LOGGER.error("Update task failed!" + e.getMessage());
+    }
+  }
+
   public static MainWindow getActiveInstance() {
     return instance;
-  }
-
-  /**
-   * Gets the movie panel.
-   * 
-   * @return the movie panel
-   */
-  public MoviePanel getMoviePanel() {
-    return (MoviePanel) panelMovies;
-  }
-
-  public MovieSetPanel getMovieSetPanel() {
-    return (MovieSetPanel) panelMovieSets;
-  }
-
-  public TvShowPanel getTvShowPanel() {
-    return (TvShowPanel) panelTvShows;
   }
 
   /**

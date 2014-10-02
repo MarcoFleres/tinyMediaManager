@@ -46,7 +46,7 @@ import org.tinymediamanager.scraper.MediaLanguages;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.ScrollablePanel;
-import org.tinymediamanager.ui.movies.MovieScraperMetadataPanel;
+import org.tinymediamanager.ui.movies.panels.MovieScraperMetadataPanel;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;

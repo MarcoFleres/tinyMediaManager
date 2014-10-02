@@ -125,40 +125,22 @@ public class MovieSetTreeModel implements TreeModel {
     root.sort();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#getChild(java.lang.Object, int)
-   */
   @Override
   public Object getChild(Object parent, int index) {
     return ((TreeNode) parent).getChildAt(index);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#getRoot()
-   */
   @Override
   public Object getRoot() {
     return root;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#getChildCount(java.lang.Object)
-   */
+  @Override
   public int getChildCount(Object parent) {
     return ((TreeNode) parent).getChildCount();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#isLeaf(java.lang.Object)
-   */
+  @Override
   public boolean isLeaf(Object node) {
     // root is never a leaf
     if (node == root) {
@@ -175,38 +157,21 @@ public class MovieSetTreeModel implements TreeModel {
     return getChildCount(node) == 0;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#getIndexOfChild(java.lang.Object, java.lang.Object)
-   */
+  @Override
   public int getIndexOfChild(Object parent, Object child) {
     return ((TreeNode) parent).getIndex((TreeNode) child);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#addTreeModelListener(javax.swing.event. TreeModelListener)
-   */
+  @Override
   public void addTreeModelListener(TreeModelListener listener) {
     listeners.add(listener);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#removeTreeModelListener(javax.swing.event. TreeModelListener)
-   */
+  @Override
   public void removeTreeModelListener(TreeModelListener listener) {
     listeners.remove(listener);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeModel#valueForPathChanged(javax.swing.tree.TreePath, java.lang.Object)
-   */
   @Override
   public void valueForPathChanged(TreePath path, Object newValue) {
   }

@@ -20,11 +20,10 @@ import java.net.URL;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.jdesktop.beansbinding.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jdesktop.beansbinding.Converter;
 import org.tinymediamanager.scraper.Certification;
-import org.tinymediamanager.ui.movies.MovieGenresPanel;
 
 /**
  * The Class CertificationImageConverter.
@@ -52,14 +51,14 @@ public class CertificationImageConverter extends Converter<Certification, Icon> 
       sb.append(cert.name().toLowerCase());
       sb.append(".png");
 
-      URL file = MovieGenresPanel.class.getResource(sb.toString());
+      URL file = CertificationImageConverter.class.getResource(sb.toString());
       if (file == null) {
         // try to find the image without the country name in path
         sb = new StringBuilder("/images/certifications/");
         String certName = cert.name();
         sb.append(certName.replace(cert.getCountry().getAlpha2() + "_", "").toLowerCase());
         sb.append(".png");
-        file = MovieGenresPanel.class.getResource(sb.toString());
+        file = CertificationImageConverter.class.getResource(sb.toString());
       }
 
       if (file != null) {

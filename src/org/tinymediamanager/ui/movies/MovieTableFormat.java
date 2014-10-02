@@ -39,21 +39,11 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
   private Comparator<String>          stringComparator = new StringComparator();
   private Comparator<ImageIcon>       imageComparator  = new ImageComparator();
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ca.odell.glazedlists.gui.TableFormat#getColumnCount()
-   */
   @Override
   public int getColumnCount() {
     return 6;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ca.odell.glazedlists.gui.TableFormat#getColumnName(int)
-   */
   @Override
   public String getColumnName(int column) {
     switch (column) {
@@ -79,11 +69,6 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
     throw new IllegalStateException();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ca.odell.glazedlists.gui.TableFormat#getColumnValue(java.lang.Object, int)
-   */
   @Override
   public Object getColumnValue(Movie movie, int column) {
     switch (column) {
@@ -95,37 +80,32 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
 
       case 2:
         if (movie.getHasNfoFile()) {
-          return IconManager.CHECKMARK;
+          return IconManager.DOT_AVAILABLE;
         }
-        return IconManager.CROSS;
+        return IconManager.DOT_UNAVAILABLE;
 
       case 3:
         if (movie.getHasImages()) {
-          return IconManager.CHECKMARK;
+          return IconManager.DOT_AVAILABLE;
         }
-        return IconManager.CROSS;
+        return IconManager.DOT_UNAVAILABLE;
 
       case 4:
         if (movie.getHasTrailer()) {
-          return IconManager.CHECKMARK;
+          return IconManager.DOT_AVAILABLE;
         }
-        return IconManager.CROSS;
+        return IconManager.DOT_UNAVAILABLE;
 
       case 5:
         if (movie.hasSubtitles()) {
-          return IconManager.CHECKMARK;
+          return IconManager.DOT_AVAILABLE;
         }
-        return IconManager.CROSS;
+        return IconManager.DOT_UNAVAILABLE;
     }
 
     throw new IllegalStateException();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ca.odell.glazedlists.gui.AdvancedTableFormat#getColumnClass(int)
-   */
   @SuppressWarnings("rawtypes")
   @Override
   public Class getColumnClass(int column) {
@@ -146,11 +126,6 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
     throw new IllegalStateException();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ca.odell.glazedlists.gui.AdvancedTableFormat#getColumnComparator(int)
-   */
   @SuppressWarnings("rawtypes")
   @Override
   public Comparator getColumnComparator(int column) {
@@ -173,11 +148,6 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
 
   private static class StringComparator implements Comparator<String> {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-     */
     @Override
     public int compare(String arg0, String arg1) {
       if (StringUtils.isEmpty(arg0)) {
@@ -191,18 +161,12 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
   }
 
   private static class ImageComparator implements Comparator<ImageIcon> {
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-     */
     @Override
     public int compare(ImageIcon arg0, ImageIcon arg1) {
       if (arg0 == arg1) {
         return 0;
       }
-      if (arg0 == IconManager.CHECKMARK) {
+      if (arg0 == IconManager.DOT_AVAILABLE) {
         return 1;
       }
       return -1;

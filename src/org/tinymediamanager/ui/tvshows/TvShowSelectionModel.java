@@ -42,19 +42,18 @@ public class TvShowSelectionModel extends AbstractModelObject {
   private PropertyChangeListener propertyChangeListener;
   private JTree                  tree;
 
-  /**
-   * Instantiates a new tv show selection model. Usage in TvShowPanel
-   */
-  public TvShowSelectionModel(JTree tree) {
+  TvShowSelectionModel() {
     selectedTvShow = initalTvShow;
-    this.tree = tree;
-
     propertyChangeListener = new PropertyChangeListener() {
       @Override
       public void propertyChange(PropertyChangeEvent evt) {
         firePropertyChange(evt);
       }
     };
+  }
+
+  public void setTree(JTree tree) {
+    this.tree = tree;
   }
 
   /**

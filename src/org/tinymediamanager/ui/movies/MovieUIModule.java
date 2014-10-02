@@ -18,15 +18,42 @@ package org.tinymediamanager.ui.movies;
 import java.util.ResourceBundle;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
+import org.tinymediamanager.Globals;
 import org.tinymediamanager.ui.ITmmUIModule;
-import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.UTF8Control;
+import org.tinymediamanager.ui.components.MainTabbedPane;
+import org.tinymediamanager.ui.movies.actions.MovieAssignMovieSetAction;
+import org.tinymediamanager.ui.movies.actions.MovieBatchEditAction;
+import org.tinymediamanager.ui.movies.actions.MovieClearImageCacheAction;
+import org.tinymediamanager.ui.movies.actions.MovieDeleteAction;
 import org.tinymediamanager.ui.movies.actions.MovieEditAction;
+import org.tinymediamanager.ui.movies.actions.MovieExportAction;
+import org.tinymediamanager.ui.movies.actions.MovieMediaInformationAction;
+import org.tinymediamanager.ui.movies.actions.MovieRemoveAction;
+import org.tinymediamanager.ui.movies.actions.MovieRenameAction;
+import org.tinymediamanager.ui.movies.actions.MovieRenamePreviewAction;
+import org.tinymediamanager.ui.movies.actions.MovieRewriteNfoAction;
+import org.tinymediamanager.ui.movies.actions.MovieSelectedScrapeAction;
+import org.tinymediamanager.ui.movies.actions.MovieSelectedScrapeMetadataAction;
+import org.tinymediamanager.ui.movies.actions.MovieSetWatchedFlagAction;
 import org.tinymediamanager.ui.movies.actions.MovieSingleScrapeAction;
+import org.tinymediamanager.ui.movies.actions.MovieSyncTraktTvAction;
+import org.tinymediamanager.ui.movies.actions.MovieSyncWatchedTraktTvAction;
 import org.tinymediamanager.ui.movies.actions.MovieUpdateDatasourceAction;
+import org.tinymediamanager.ui.movies.actions.MovieUpdateSingleDatasourceAction;
+import org.tinymediamanager.ui.movies.panels.MovieArtworkPanel;
+import org.tinymediamanager.ui.movies.panels.MovieCastPanel;
+import org.tinymediamanager.ui.movies.panels.MovieInformationPanel;
+import org.tinymediamanager.ui.movies.panels.MovieListPanel;
+import org.tinymediamanager.ui.movies.panels.MovieMediaInformationPanel;
+import org.tinymediamanager.ui.movies.panels.MovieTrailerPanel;
 import org.tinymediamanager.ui.movies.settings.MovieSettingsContainerPanel;
 
 /**
@@ -38,8 +65,8 @@ public class MovieUIModule implements ITmmUIModule {
   private final static String         ID       = "movies";
   private static MovieUIModule        instance = null;
 
-  private MoviePanel                  listPanel;
-  private JPanel                      detailPanel;
+  private final MovieListPanel        listPanel;
+  private final JTabbedPane           detailPanel;
   private final JPanel                settingsPanel;
 
   private final MovieSelectionModel   selectionModel;
@@ -48,20 +75,29 @@ public class MovieUIModule implements ITmmUIModule {
   private Action                      editAction;
   private Action                      updateAction;
 
+  private JPopupMenu                  popupMenu;
+  private JPopupMenu                  updatePopupMenu;
   private JPopupMenu                  searchPopupMenu;
   private JPopupMenu                  editPopupMenu;
 
   private MovieUIModule() {
-    // this will be used in v3
-    // listPanel = new MoviePanel();
-    // selectionModel = listPanel.movieSelectionModel;
-    // detailPanel = new MovieInformationPanel(selectionModel);
+    listPanel = new MovieListPanel();
+    selectionModel = listPanel.getSelectionModel();
 
-    // createActions();
-    // createPopupMenu();
+    detailPanel = new MainTabbedPane();
+    detailPanel.addTab("Details", new MovieInformationPanel(selectionModel));
+    detailPanel.addTab("Cast", new MovieCastPanel(selectionModel));
+    detailPanel.addTab("Media files", new MovieMediaInformationPanel(selectionModel));
+    detailPanel.addTab("Artwork", new MovieArtworkPanel(selectionModel));
+    detailPanel.addTab("Trailer", new MovieTrailerPanel(selectionModel));
 
+    listPanel.setInitialSelection();
     settingsPanel = new MovieSettingsContainerPanel();
-    selectionModel = MainWindow.getActiveInstance().getMoviePanel().movieSelectionModel;
+
+    createActions();
+    createPopupMenu();
+
+    listPanel.setPopupMenu(popupMenu);
   }
 
   public static MovieUIModule getInstance() {
@@ -82,24 +118,67 @@ public class MovieUIModule implements ITmmUIModule {
   }
 
   private void createPopupMenu() {
+    popupMenu = new JPopupMenu();
+    popupMenu.add(new MovieSingleScrapeAction(true));
+    popupMenu.add(new MovieSelectedScrapeAction());
+    popupMenu.add(new MovieSelectedScrapeMetadataAction());
+    popupMenu.add(new MovieAssignMovieSetAction());
+    popupMenu.addSeparator();
+    popupMenu.add(new MovieEditAction(true));
+    popupMenu.add(new MovieBatchEditAction());
+    popupMenu.add(new MovieSetWatchedFlagAction());
+    popupMenu.add(new MovieRewriteNfoAction());
+    popupMenu.add(new MovieRenameAction(true));
+    popupMenu.add(new MovieRenamePreviewAction());
+    popupMenu.add(new MovieMediaInformationAction(true));
+    popupMenu.add(new MovieExportAction());
+    popupMenu.addSeparator();
+    popupMenu.add(new MovieSyncTraktTvAction());
+    popupMenu.add(new MovieSyncWatchedTraktTvAction());
+    popupMenu.addSeparator();
+    popupMenu.add(new MovieClearImageCacheAction());
+    popupMenu.addSeparator();
+    popupMenu.add(new MovieRemoveAction());
+    popupMenu.add(new MovieDeleteAction());
+
+    // update popup menu
+    updatePopupMenu = new JPopupMenu();
+    updatePopupMenu.addPopupMenuListener(new PopupMenuListener() {
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+        updatePopupMenu.removeAll();
+        updatePopupMenu.add(new MovieUpdateDatasourceAction(true));
+        updatePopupMenu.addSeparator();
+        for (String ds : Globals.settings.getMovieSettings().getMovieDataSource()) {
+          updatePopupMenu.add(new MovieUpdateSingleDatasourceAction(ds));
+        }
+        updatePopupMenu.pack();
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent e) {
+      }
+    });
+
     // search popup menu
     searchPopupMenu = new JPopupMenu();
     searchPopupMenu.add(new MovieSingleScrapeAction(true));
-    // popupMenu.add(actionScrapeSelected);
-    // popupMenu.add(actionScrapeMetadataSelected);
-    // popupMenu.addSeparator();
-    // popupMenu.add(actionEditMovie2);
-    // popupMenu.add(actionBatchEdit);
-    // popupMenu.add(actionRename2);
-    // popupMenu.add(actionMediaInformation2);
-    // popupMenu.add(actionExport);
-    // popupMenu.addSeparator();
-    // popupMenu.add(actionRemove2);
+    searchPopupMenu.add(new MovieSelectedScrapeAction());
+    searchPopupMenu.add(new MovieSelectedScrapeMetadataAction());
 
     // edit popup menu
     editPopupMenu = new JPopupMenu();
     editPopupMenu.add(new MovieEditAction(true));
-
+    editPopupMenu.add(new MovieBatchEditAction());
+    editPopupMenu.add(new MovieSetWatchedFlagAction());
+    editPopupMenu.add(new MovieRewriteNfoAction());
+    editPopupMenu.add(new MovieRenameAction(true));
+    editPopupMenu.add(new MovieRenamePreviewAction());
+    editPopupMenu.add(new MovieMediaInformationAction(true));
   }
 
   @Override
@@ -118,7 +197,7 @@ public class MovieUIModule implements ITmmUIModule {
   }
 
   @Override
-  public JPanel getDetailPanel() {
+  public JComponent getDetailPanel() {
     return detailPanel;
   }
 
@@ -149,7 +228,7 @@ public class MovieUIModule implements ITmmUIModule {
 
   @Override
   public JPopupMenu getUpdateMenu() {
-    return null;
+    return updatePopupMenu;
   }
 
   @Override

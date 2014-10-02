@@ -39,7 +39,7 @@ import org.tinymediamanager.ui.EqualsLayout;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
-import org.tinymediamanager.ui.tvshows.TvShowScraperMetadataPanel;
+import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowScraperMetadataPanel;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;

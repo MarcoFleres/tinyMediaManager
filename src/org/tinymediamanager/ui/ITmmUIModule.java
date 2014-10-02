@@ -16,6 +16,7 @@
 package org.tinymediamanager.ui;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
@@ -25,14 +26,13 @@ import javax.swing.JPopupMenu;
  * @author Manuel Laggner
  */
 public interface ITmmUIModule {
-
   public String getModuleId();
 
   public JPanel getTabPanel();
 
   public String getTabTitle();
 
-  public JPanel getDetailPanel();
+  public JComponent getDetailPanel();
 
   public Action getSearchAction();
 

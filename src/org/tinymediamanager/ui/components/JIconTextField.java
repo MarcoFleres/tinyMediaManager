@@ -18,8 +18,10 @@ package org.tinymediamanager.ui.components;
 
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.net.URL;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -30,52 +32,35 @@ import javax.swing.border.Border;
  * @author Georgios Migdos <cyberpython@gmail.com>
  */
 public class JIconTextField extends JTextField {
+  private static final long serialVersionUID = 5165830719829198726L;
 
-  /** The Constant serialVersionUID. */
-  private static final long serialVersionUID = 1L;
-
-  /** The icon. */
   private Icon              icon;
-
-  /** The dummy insets. */
   private Insets            dummyInsets;
 
-  /**
-   * Instantiates a new j icon text field.
-   */
   public JIconTextField() {
     super();
-    this.icon = null;
+
+    URL file = JIconTextField.class.getResource("../images/icn_searchfield.png");
+    if (file != null) {
+      this.icon = new ImageIcon(file);
+    }
+    else {
+      this.icon = null;
+    }
 
     Border border = UIManager.getBorder("TextField.border");
     JTextField dummy = new JTextField();
     this.dummyInsets = border.getBorderInsets(dummy);
   }
 
-  /**
-   * Sets the icon.
-   * 
-   * @param icon
-   *          the new icon
-   */
   public void setIcon(Icon icon) {
     this.icon = icon;
   }
 
-  /**
-   * Gets the icon.
-   * 
-   * @return the icon
-   */
   public Icon getIcon() {
     return this.icon;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-   */
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
@@ -85,13 +70,12 @@ public class JIconTextField extends JTextField {
     if (this.icon != null) {
       int iconWidth = icon.getIconWidth();
       int iconHeight = icon.getIconHeight();
-      int x = dummyInsets.left + 5;// this is our icon's x
+      int x = dummyInsets.left + 3;// this is our icon's x
       textX = x + iconWidth + 2; // this is the x where text should start
       int y = (this.getHeight() - iconHeight) / 2;
       icon.paintIcon(this, g, x, y);
     }
 
     setMargin(new Insets(2, textX, 2, 2));
-
   }
 }

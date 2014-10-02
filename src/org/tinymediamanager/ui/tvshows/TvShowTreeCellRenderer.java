@@ -21,10 +21,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ResourceBundle;
 
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
@@ -35,6 +35,8 @@ import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
+import org.tinymediamanager.ui.components.TmmTree.BottomBorderBorder;
+import org.tinymediamanager.ui.components.TmmTree.VerticalBorderPanel;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -47,27 +49,29 @@ import com.jgoodies.forms.layout.RowSpec;
  * @author Manuel Laggner
  */
 public class TvShowTreeCellRenderer implements TreeCellRenderer {
+  private static final ResourceBundle BUNDLE                     = ResourceBundle.getBundle("messages", new UTF8Control());   //$NON-NLS-1$
 
-  private static final ResourceBundle BUNDLE                     = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
-  private static final Color          EVEN_ROW_COLOR             = new Color(241, 245, 250);
+  public static int                   COLUMN_WIDTH               = 22;
 
-  private JPanel                      tvShowPanel                = new JPanel();
+  private JPanel                      tvShowPanel                = new VerticalBorderPanel(new int[] { 0, 1, 2, 3 });
   private JLabel                      tvShowTitle                = new JLabel();
-  private JLabel                      tvShowInfo                 = new JLabel();
+  private JLabel                      tvShowSeasons              = new JLabel();
+  private JLabel                      tvShowEpisodes             = new JLabel();
   private JLabel                      tvShowNfoLabel             = new JLabel();
   private JLabel                      tvShowImageLabel           = new JLabel();
 
-  private JPanel                      tvShowSeasonPanel          = new JPanel();
+  private JPanel                      tvShowSeasonPanel          = new VerticalBorderPanel(new int[] { 0, 1, 2, 3, 4, 5, 6 });
   private JLabel                      tvShowSeasonTitle          = new JLabel();
+  private JLabel                      tvShowSeasonEpisodes       = new JLabel();
 
-  private JPanel                      tvShowEpisodePanel         = new JPanel();
+  private JPanel                      tvShowEpisodePanel         = new VerticalBorderPanel(new int[] { 0, 1 });
   private JLabel                      tvShowEpisodeTitle         = new JLabel();
   private JLabel                      tvShowEpisodeNfoLabel      = new JLabel();
   private JLabel                      tvShowEpisodeImageLabel    = new JLabel();
   private JLabel                      tvShowEpisodeSubtitleLabel = new JLabel();
 
   private DefaultTreeCellRenderer     defaultRenderer            = new DefaultTreeCellRenderer();
-  private final Color                 defaultColor               = tvShowTitle.getForeground();
+  private final Color                 defaultColor               = defaultRenderer.getTextSelectionColor();
   private final Color                 newlyAddedColor            = new Color(76, 143, 72);
 
   /**
@@ -75,40 +79,51 @@ public class TvShowTreeCellRenderer implements TreeCellRenderer {
    */
   public TvShowTreeCellRenderer() {
     tvShowPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("min:grow"), FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-        ColumnSpec.decode("center:20px"), ColumnSpec.decode("center:20px"), ColumnSpec.decode("center:20px") }, new RowSpec[] {
-        FormFactory.DEFAULT_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
+        ColumnSpec.decode("center:30px"), ColumnSpec.decode("center:30px"), ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"),
+        ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("1px") },
+        new RowSpec[] { FormFactory.DEFAULT_ROWSPEC }));
 
+    tvShowPanel.setBorder(new BottomBorderBorder());
     TmmFontHelper.changeFont(tvShowTitle, Font.BOLD);
     tvShowTitle.setHorizontalAlignment(JLabel.LEFT);
     tvShowTitle.setMinimumSize(new Dimension(0, 0));
+    tvShowTitle.setBorder(new EmptyBorder(5, 0, 5, 0));
+    tvShowTitle.setForeground(defaultColor);
     tvShowPanel.add(tvShowTitle, "1, 1");
 
-    tvShowPanel.add(tvShowNfoLabel, "3, 1, 1, 2");
-    tvShowPanel.add(tvShowImageLabel, "4, 1, 1, 2");
+    tvShowPanel.add(tvShowSeasons, "3, 1");
+    tvShowSeasons.setForeground(defaultColor);
+    TmmFontHelper.changeFont(tvShowSeasons, 0.916);
+    tvShowPanel.add(tvShowEpisodes, "4, 1");
+    tvShowEpisodes.setForeground(defaultColor);
+    TmmFontHelper.changeFont(tvShowEpisodes, 0.916);
+    tvShowPanel.add(tvShowNfoLabel, "5, 1");
+    tvShowPanel.add(tvShowImageLabel, "6, 1");
 
-    TmmFontHelper.changeFont(tvShowInfo, 0.816);
-    tvShowInfo.setHorizontalAlignment(JLabel.LEFT);
-    tvShowInfo.setMinimumSize(new Dimension(0, 0));
-    tvShowPanel.add(tvShowInfo, "1, 2");
-
-    tvShowSeasonPanel.setLayout(new BoxLayout(tvShowSeasonPanel, BoxLayout.Y_AXIS));
-    tvShowSeasonPanel.add(tvShowSeasonTitle);
+    tvShowSeasonPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("min:grow"), FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
+        ColumnSpec.decode("center:30px"), ColumnSpec.decode("center:30px"), ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"),
+        ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("1px") },
+        new RowSpec[] { FormFactory.DEFAULT_ROWSPEC }));
+    tvShowSeasonPanel.add(tvShowSeasonTitle, "1, 1");
+    tvShowSeasonTitle.setBorder(new EmptyBorder(5, 0, 5, 0));
+    tvShowSeasonPanel.setBorder(new BottomBorderBorder());
+    tvShowSeasonPanel.add(tvShowSeasonEpisodes, "4 , 1");
+    tvShowSeasonEpisodes.setForeground(defaultColor);
+    TmmFontHelper.changeFont(tvShowSeasonEpisodes, 0.916);
 
     tvShowEpisodePanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("min:grow"), FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-        ColumnSpec.decode("center:20px"), ColumnSpec.decode("center:20px"), ColumnSpec.decode("center:20px") },
-        new RowSpec[] { FormFactory.DEFAULT_ROWSPEC }));
+        ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"),
+        ColumnSpec.decode("center:" + COLUMN_WIDTH + "px"), ColumnSpec.decode("1px") }, new RowSpec[] { FormFactory.DEFAULT_ROWSPEC, }));
     tvShowEpisodeTitle.setMinimumSize(new Dimension(0, 0));
+    tvShowEpisodeTitle.setBorder(new EmptyBorder(5, 0, 5, 0));
     tvShowEpisodePanel.add(tvShowEpisodeTitle, "1, 1");
+    tvShowEpisodeTitle.setForeground(defaultColor);
     tvShowEpisodePanel.add(tvShowEpisodeNfoLabel, "3, 1");
     tvShowEpisodePanel.add(tvShowEpisodeImageLabel, "4, 1");
     tvShowEpisodePanel.add(tvShowEpisodeSubtitleLabel, "5, 1");
+    tvShowEpisodePanel.setBorder(new BottomBorderBorder());
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.tree.TreeCellRenderer#getTreeCellRendererComponent(javax.swing.JTree, java.lang.Object, boolean, boolean, boolean, int, boolean)
-   */
   @Override
   public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
     Component returnValue = null;
@@ -135,10 +150,10 @@ public class TvShowTreeCellRenderer implements TreeCellRenderer {
           tvShowTitle.setForeground(defaultColor);
         }
 
-        tvShowInfo.setText(tvShow.getSeasons().size()
-            + " " + BUNDLE.getString("metatag.seasons") + " - " + tvShow.getEpisodes().size() + " " + BUNDLE.getString("metatag.episodes")); //$NON-NLS-1$
-        tvShowNfoLabel.setIcon(tvShow.getHasNfoFile() ? IconManager.CHECKMARK : IconManager.CROSS);
-        tvShowImageLabel.setIcon(tvShow.getHasImages() ? IconManager.CHECKMARK : IconManager.CROSS);
+        tvShowSeasons.setText("" + tvShow.getSeasons().size());
+        tvShowEpisodes.setText("" + tvShow.getEpisodes().size());
+        tvShowNfoLabel.setIcon(tvShow.getHasNfoFile() ? IconManager.DOT_AVAILABLE : IconManager.DOT_UNAVAILABLE);
+        tvShowImageLabel.setIcon(tvShow.getHasImages() ? IconManager.DOT_AVAILABLE : IconManager.DOT_UNAVAILABLE);
 
         tvShowPanel.setEnabled(tree.isEnabled());
         tvShowPanel.invalidate();
@@ -160,6 +175,8 @@ public class TvShowTreeCellRenderer implements TreeCellRenderer {
         else {
           tvShowSeasonTitle.setForeground(defaultColor);
         }
+
+        tvShowSeasonEpisodes.setText("" + season.getEpisodes().size());
 
         tvShowSeasonPanel.invalidate();
         returnValue = tvShowSeasonPanel;
@@ -190,9 +207,9 @@ public class TvShowTreeCellRenderer implements TreeCellRenderer {
 
         tvShowEpisodePanel.setEnabled(tree.isEnabled());
 
-        tvShowEpisodeNfoLabel.setIcon(episode.getHasNfoFile() ? IconManager.CHECKMARK : IconManager.CROSS);
-        tvShowEpisodeImageLabel.setIcon(episode.getHasImages() ? IconManager.CHECKMARK : IconManager.CROSS);
-        tvShowEpisodeSubtitleLabel.setIcon(episode.hasSubtitles() ? IconManager.CHECKMARK : IconManager.CROSS);
+        tvShowEpisodeNfoLabel.setIcon(episode.getHasNfoFile() ? IconManager.DOT_AVAILABLE : IconManager.DOT_UNAVAILABLE);
+        tvShowEpisodeImageLabel.setIcon(episode.getHasImages() ? IconManager.DOT_AVAILABLE : IconManager.DOT_UNAVAILABLE);
+        tvShowEpisodeSubtitleLabel.setIcon(episode.hasSubtitles() ? IconManager.DOT_AVAILABLE : IconManager.DOT_UNAVAILABLE);
 
         tvShowEpisodePanel.invalidate();
         returnValue = tvShowEpisodePanel;
@@ -206,10 +223,6 @@ public class TvShowTreeCellRenderer implements TreeCellRenderer {
     // paint background
     if (selected) {
       returnValue.setBackground(defaultRenderer.getBackgroundSelectionColor());
-    }
-    else {
-      returnValue.setBackground(row % 2 == 0 ? EVEN_ROW_COLOR : Color.WHITE);
-      // rendererPanel.setBackground(defaultRenderer.getBackgroundNonSelectionColor());
     }
 
     return returnValue;

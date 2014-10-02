@@ -72,14 +72,15 @@ public class MediaFilesPanel extends JPanel {
     setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), }, new RowSpec[] { RowSpec.decode("default:grow"), }));
 
     mediaFileTableModel = new DefaultEventTableModel<MediaFile>(GlazedListsSwing.swingThreadProxyList(mediaFileEventList), new MediaTableFormat());
-    tableFiles = new ZebraJTable(mediaFileTableModel);
+    tableFiles = new TmmTable(mediaFileTableModel);
     tableFiles.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
     LinkListener linkListener = new LinkListener();
     tableFiles.addMouseListener(linkListener);
     tableFiles.addMouseMotionListener(linkListener);
 
-    scrollPaneFiles = ZebraJTable.createStripedJScrollPane(tableFiles);
+    int[] cols = {};
+    scrollPaneFiles = TmmTable.createJScrollPane(tableFiles, cols);
     add(scrollPaneFiles, "1, 1, fill, fill");
 
     scrollPaneFiles.setViewportView(tableFiles);
@@ -89,6 +90,9 @@ public class MediaFilesPanel extends JPanel {
     TableColumnResizer.adjustColumnPreferredWidths(tableFiles, 6);
   }
 
+  /*
+   * Helper class for the table layout
+   */
   private static class MediaTableFormat implements AdvancedTableFormat<MediaFile> {
     @Override
     public int getColumnCount() {

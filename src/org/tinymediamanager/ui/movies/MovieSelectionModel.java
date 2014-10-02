@@ -66,16 +66,6 @@ public class MovieSelectionModel extends AbstractModelObject implements ListSele
   /** The property change listener. */
   private PropertyChangeListener            propertyChangeListener;
 
-  /**
-   * Instantiates a new movie selection model. Usage in MoviePanel
-   * 
-   * @param sortedList
-   *          the sorted list
-   * @param source
-   *          the source
-   * @param matcher
-   *          the matcher
-   */
   public MovieSelectionModel(SortedList<Movie> sortedList, EventList<Movie> source, MovieMatcherEditor matcher) {
     this.sortedList = sortedList;
     this.selectionModel = new DefaultEventSelectionModel<Movie>(source);
@@ -93,19 +83,10 @@ public class MovieSelectionModel extends AbstractModelObject implements ListSele
     };
   }
 
-  /**
-   * Instantiates a new movie selection model. Usage in MovieSetPanel
-   */
   public MovieSelectionModel() {
 
   }
 
-  /**
-   * Sets the selected movie.
-   * 
-   * @param movie
-   *          the new selected movie
-   */
   public void setSelectedMovie(Movie movie) {
     Movie oldValue = this.selectedMovie;
     if (movie == null) {
@@ -126,35 +107,14 @@ public class MovieSelectionModel extends AbstractModelObject implements ListSele
     firePropertyChange(SELECTED_MOVIE, oldValue, selectedMovie);
   }
 
-  /**
-   * Gets the matcher editor.
-   * 
-   * @return the matcher editor
-   */
   public MovieMatcherEditor getMatcherEditor() {
     return matcherEditor;
   }
 
-  /**
-   * Gets the selection model.
-   * 
-   * @return the selection model
-   */
   public DefaultEventSelectionModel<Movie> getSelectionModel() {
     return selectionModel;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event. ListSelectionEvent)
-   */
-  /**
-   * Value changed.
-   * 
-   * @param e
-   *          the e
-   */
   @Override
   public void valueChanged(ListSelectionEvent e) {
     if (e.getValueIsAdjusting()) {
@@ -188,71 +148,30 @@ public class MovieSelectionModel extends AbstractModelObject implements ListSele
     }
   }
 
-  /**
-   * Gets the selected movie.
-   * 
-   * @return the selected movie
-   */
   public Movie getSelectedMovie() {
     return selectedMovie;
   }
 
-  /**
-   * Gets the selected movies.
-   * 
-   * @return the selected movies
-   */
   public List<Movie> getSelectedMovies() {
     return selectedMovies;
   }
 
-  /**
-   * Sets the selected movies.
-   * 
-   * @param selectedMovies
-   *          the new selected movies
-   */
   public void setSelectedMovies(List<Movie> selectedMovies) {
     this.selectedMovies = selectedMovies;
   }
 
-  /**
-   * Filter movies.
-   * 
-   * @param filter
-   *          the filter
-   */
   public void filterMovies(HashMap<MoviesExtendedMatcher.SearchOptions, Object> filter) {
     matcherEditor.filterMovies(filter);
   }
 
-  /**
-   * Gets the table comparator chooser.
-   * 
-   * @return the table comparator chooser
-   */
   public TableComparatorChooser<Movie> getTableComparatorChooser() {
     return tableComparatorChooser;
   }
 
-  /**
-   * Sets the table comparator chooser.
-   * 
-   * @param tableComparatorChooser
-   *          the new table comparator chooser
-   */
   public void setTableComparatorChooser(TableComparatorChooser<Movie> tableComparatorChooser) {
     this.tableComparatorChooser = tableComparatorChooser;
   }
 
-  /**
-   * Sort movies.
-   * 
-   * @param column
-   *          the column
-   * @param ascending
-   *          the ascending
-   */
   public void sortMovies(MovieExtendedComparator.SortColumn column, boolean ascending) {
     Comparator<Movie> comparator = new MovieExtendedComparator(column, ascending);
     sortedList.setComparator(comparator);

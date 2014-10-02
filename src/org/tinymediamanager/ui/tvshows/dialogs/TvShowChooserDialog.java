@@ -81,7 +81,7 @@ import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 import org.tinymediamanager.ui.tvshows.TvShowChooserModel;
-import org.tinymediamanager.ui.tvshows.TvShowScraperMetadataPanel;
+import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowScraperMetadataPanel;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;

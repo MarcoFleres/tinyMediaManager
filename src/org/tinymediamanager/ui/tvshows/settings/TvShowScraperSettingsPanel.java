@@ -40,7 +40,7 @@ import org.tinymediamanager.scraper.CountryCode;
 import org.tinymediamanager.scraper.MediaLanguages;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.ScrollablePanel;
-import org.tinymediamanager.ui.tvshows.TvShowScraperMetadataPanel;
+import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowScraperMetadataPanel;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
