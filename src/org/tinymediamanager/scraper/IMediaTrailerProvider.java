@@ -22,14 +22,7 @@ import java.util.List;
  * 
  * @author Manuel Laggner
  */
-public interface IMediaTrailerProvider {
-
-  /**
-   * Gets the info.
-   * 
-   * @return the provider info containing metadata of the provider
-   */
-  public MediaProviderInfo getProviderInfo();
+public interface IMediaTrailerProvider extends IMediaProvider {
 
   /**
    * Gets the trailers.

@@ -220,7 +220,8 @@ public class TvShowUIModule implements ITmmUIModule {
     popupMenu = new JPopupMenu();
     popupMenu.add(new TvShowSingleScrapeAction(true));
     popupMenu.add(new TvShowSelectedScrapeAction());
-    popupMenu.add(new TvShowScrapeEpisodesAction());
+    popupMenu.add(new TvShowScrapeEpisodesAction(true));
+    popupMenu.add(new TvShowScrapeEpisodesAction(false));
     popupMenu.add(new TvShowScrapeNewItemsAction());
     // popupMenu.add(actionScrapeMetadataSelected);
     popupMenu.addSeparator();

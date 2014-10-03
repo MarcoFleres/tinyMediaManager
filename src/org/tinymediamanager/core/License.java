@@ -21,13 +21,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tinymediamanager.Globals;
 import org.tinymediamanager.scraper.util.Url;
 
@@ -37,28 +42,75 @@ import org.tinymediamanager.scraper.util.Url;
  * @author Myron Boyle
  */
 public class License {
-
+  private static final Logger LOGGER       = LoggerFactory.getLogger(License.class);
   private static final String LICENSE_FILE = "tmm.lic";
+  private static final String UNKNOWN_MAC  = "UNKNOWN_MAC";
 
   /**
    * returns the MAC address of this instance
    * 
    * @return MAC or empty string
    */
-  private static String getMac() {
+  public static String getMac() {
     try {
-      for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); e.hasMoreElements();) {
-        NetworkInterface ni = e.nextElement();
+      InetAddress ip = InetAddress.getLocalHost();
+      if (ip != null) {
+        // we are connected to Internet/router and have an IP
+        NetworkInterface ni = NetworkInterface.getByInetAddress(ip);
         String macAddress = formatMac(ni.getHardwareAddress());
         if (macAddress != null && !macAddress.isEmpty()) {
           return macAddress;
         }
       }
-      return "";
     }
     catch (Exception e) {
-      return "";
+      LOGGER.warn("Error getting MAC from LocalHost IP - not connected to internet/router?");
     }
+
+    try {
+      for (Enumeration<NetworkInterface> nif = NetworkInterface.getNetworkInterfaces(); nif.hasMoreElements();) {
+        NetworkInterface ni = null;
+        try {
+          ni = nif.nextElement();
+          String macAddress = formatMac(ni.getHardwareAddress());
+          if (macAddress != null && !macAddress.isEmpty()) {
+            // get first
+            return macAddress;
+          }
+        }
+        catch (Exception e2) {
+          LOGGER.warn("Error getting MAC of " + ni);
+        }
+      }
+      return UNKNOWN_MAC;
+    }
+    catch (Exception e) {
+      LOGGER.warn("I/O Error on getting network interfaces");
+      return UNKNOWN_MAC;
+    }
+  }
+
+  /**
+   * returns ALL found MAC address of this instance
+   * 
+   * @return MAC or empty string
+   */
+  private static List<String> getAllMacAddresses() {
+    List<String> m = new ArrayList<String>();
+    m.add(UNKNOWN_MAC); // lic generated with empty mac, but java cannot handle this :/ use fake mac for further checks
+    try {
+      for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); e.hasMoreElements();) {
+        NetworkInterface ni = e.nextElement();
+        String macAddress = formatMac(ni.getHardwareAddress());
+        if (macAddress != null && !macAddress.isEmpty()) {
+          m.add(macAddress);
+        }
+      }
+    }
+    catch (Exception e) {
+      LOGGER.warn("Error getting MAC of all interfaces");
+    }
+    return m;
   }
 
   private static String formatMac(byte[] mac) {
@@ -83,16 +135,15 @@ public class License {
         // null only when not decryptable with "key"
         @SuppressWarnings("unused")
         String pleaseDoNotCrack = "";
-        pleaseDoNotCrack = "Ok, you found it.";
-        pleaseDoNotCrack = "This is the real deal.";
-        pleaseDoNotCrack = "One char away from 'the full thing'.";
-        pleaseDoNotCrack = "[...]";
-        pleaseDoNotCrack = "If you are reading this, you're probably a java developer.";
-        pleaseDoNotCrack = "If so, you know how much work can be in such a project like TMM.";
-        pleaseDoNotCrack = "So please, be kind and support the developers for your free License :)";
-        pleaseDoNotCrack = "http://www.tinymediamanager.org/index.php/donate/";
-        pleaseDoNotCrack = "It gives you a warm and fuzzy feeling - i swear ;)";
-        pleaseDoNotCrack = "";
+        pleaseDoNotCrack += "Ok, you found it.";
+        pleaseDoNotCrack += "This is the real deal.";
+        pleaseDoNotCrack += "One char away from 'the full thing'.";
+        pleaseDoNotCrack += "[...]";
+        pleaseDoNotCrack += "If you are reading this, you're probably a java developer.";
+        pleaseDoNotCrack += "If so, you know how much work can be in such a project like TMM.";
+        pleaseDoNotCrack += "So please, be kind and support the developers for your free License :)";
+        pleaseDoNotCrack += "http://www.tinymediamanager.org/index.php/donate/";
+        pleaseDoNotCrack += "It gives you a warm and fuzzy feeling - i swear ;)";
         return true;
       }
     }
@@ -141,14 +192,30 @@ public class License {
       String iv = "F27D5C9927726BCEFE7510B1BDD3D137";
       String salt = "3FF2EC019C627B945225DEBAD71A01B6985FE84C95A70EB132882F88C0A59A55";
       AesUtil util = new AesUtil(128, 100);
-      String decrypt = util.decrypt(salt, iv, getMac(), lic);
 
-      Properties l = new Properties();
-      StringReader reader = new StringReader(decrypt);
-      l.load(reader);
-      return l;
+      Properties prop = new Properties();
+      try {
+        // try to decrypt with new/correct MAC implementation
+        String decrypt = util.decrypt(salt, iv, getMac(), lic);
+        StringReader reader = new StringReader(decrypt);
+        prop.load(reader);
+      }
+      catch (Exception e) {
+        // didn't work? try it with all our found MACs (+ an empty one of an old impl)
+        for (String mac : getAllMacAddresses()) {
+          try {
+            String decrypt = util.decrypt(salt, iv, mac, lic);
+            StringReader reader = new StringReader(decrypt);
+            prop.load(reader);
+          }
+          catch (Exception e2) {
+          }
+        }
+      }
+      return prop.size() > 0 ? prop : null; // return NULL when properties are empty
     }
     catch (Exception e) {
+      // file not found or whatever
       return null;
     }
   }

@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.Globals;
 import org.tinymediamanager.LaunchUtil;
 import org.tinymediamanager.ReleaseInfo;
 import org.tinymediamanager.core.Message.MessageLevel;
@@ -219,9 +220,13 @@ public class Utils {
       return title;
     }
     for (String prfx : Settings.getInstance().getTitlePrefix()) {
-      title = title.replaceAll("(?i)^" + prfx + " (.*)", "$1, " + prfx);
+      String delim = "\\s+"; // one or more spaces needed
+      if (prfx.matches(".*['`´]$")) { // ends with hand-picked delim, so no space might be possible
+        delim = "";
+      }
+      title = title.replaceAll("(?i)^" + prfx + delim + "(.*)", "$1, " + prfx);
     }
-    return title;
+    return title.trim();
   }
 
   /**
@@ -237,9 +242,13 @@ public class Utils {
       return "";
     }
     for (String prfx : Settings.getInstance().getTitlePrefix()) {
-      title = title.replaceAll("(?i)(.*), " + prfx, prfx + " $1");
+      String delim = " "; // one spaces as delim
+      if (prfx.matches(".*['`´]$")) { // ends with hand-picked delim, so no space between prefix and title
+        delim = "";
+      }
+      title = title.replaceAll("(?i)(.*), " + prfx, prfx + delim + "$1");
     }
-    return title;
+    return title.trim();
   }
 
   /**
@@ -385,7 +394,7 @@ public class Utils {
                 + "&tid=UA-35564534-5"
                 + "&cid=" + uuid 
                 + "&an=tinyMediaManager" 
-                + "&av=" + ReleaseInfo.getBuild() 
+                + "&av=" + ReleaseInfo.getBuild() // svn revision number (or nightly/prerel)
                 + "&t=event"
                 + "&ec=" + event
                 + "&ea=" + event 
@@ -396,7 +405,9 @@ public class Utils {
                 + "&sr=" + java.awt.Toolkit.getDefaultToolkit().getScreenSize().width + "x" + java.awt.Toolkit.getDefaultToolkit().getScreenSize().height 
                 + "&cd1=" + getEncProp("os.name") 
                 + "&cd2=" + getEncProp("os.arch") 
-                + "&cd3=" + getEncProp("java.version") 
+                + "&cd3=" + getEncProp("java.specification.version") // short; eg 1.7
+                + "&cd4=" + ReleaseInfo.getVersion() // TMM version eg 2.5.5
+                + "&cd5=" + (Globals.isDonator() ? "1" : "0")
                 + "&z=" + System.currentTimeMillis();
             // @formatter:on
             Url url = new Url("http://www.google-analytics.com/collect?" + ga);

@@ -144,6 +144,15 @@ public class FanartTvMetadataProvider implements IMediaArtworkProvider {
     catch (Exception e) {
     }
 
+    // no ID found? try the old one
+    if (tvdbId == 0) {
+      try {
+        tvdbId = Integer.parseInt(options.getId("tvdb"));
+      }
+      catch (Exception e) {
+      }
+    }
+
     if (tvdbId > 0) {
       tvShowImages = ftv.getTvArtwork(tvdbId);
     }
@@ -172,11 +181,8 @@ public class FanartTvMetadataProvider implements IMediaArtworkProvider {
 
     // select desired types
     switch (type) {
-      case HDCLEARART:
       case MOVIEBACKGROUND:
-      case MOVIETHUMB:
       case SHOWBACKGROUND:
-      case TVTHUMB:
         if (artworkType == MediaArtworkType.BACKGROUND || artworkType == MediaArtworkType.ALL) {
           ma = new MediaArtwork();
           ma.setType(MediaArtworkType.BACKGROUND);
@@ -188,6 +194,14 @@ public class FanartTvMetadataProvider implements IMediaArtworkProvider {
         if (artworkType == MediaArtworkType.POSTER || artworkType == MediaArtworkType.ALL) {
           ma = new MediaArtwork();
           ma.setType(MediaArtworkType.POSTER);
+        }
+        break;
+
+      case MOVIETHUMB:
+      case TVTHUMB:
+        if (artworkType == MediaArtworkType.THUMB || artworkType == MediaArtworkType.ALL) {
+          ma = new MediaArtwork();
+          ma.setType(MediaArtworkType.THUMB);
         }
         break;
 
@@ -219,6 +233,7 @@ public class FanartTvMetadataProvider implements IMediaArtworkProvider {
       case HDMOVIECLEARART:
       case CLEARART:
       case MOVIEART:
+      case HDCLEARART:
         if (artworkType == MediaArtworkType.CLEARART || artworkType == MediaArtworkType.ALL) {
           ma = new MediaArtwork();
           ma.setType(MediaArtworkType.CLEARART);

@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.tinymediamanager.scraper;
 
-package org.tinymediamanager.core.movie;
-
-/**
- * The Enum MovieNfoNaming.
- * 
- * @author Manuel Laggner
- */
-public enum MovieNfoNaming {
-
-  /** [filename].nfo */
-  FILENAME_NFO,
-  /** movie.nfo */
-  MOVIE_NFO,
+public interface IMediaProvider {
   /**
-   * DVD/Bluray style - used internally only when isDisc()<br>
-   * <b>do not use/present/save that - it's added automatically</b>
+   * Gets a general information about this metadata provider
+   * 
+   * @return the provider info containing metadata of the provider
    */
-  @Deprecated
-  DISC_NFO
+  public MediaProviderInfo getProviderInfo();
+
 }

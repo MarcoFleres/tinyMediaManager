@@ -168,6 +168,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       // check whether the path is accessible (eg disconnected shares)
       if (dirs == null || dirs.length == 0) {
         // error - continue with next datasource
+        LOGGER.warn("Datasource not available/empty " + path);
         MessageManager.instance.pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable",
             new String[] { path }));
         continue;
@@ -304,6 +305,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       // check if the tv show dir is accessible
       File[] filesInDatasourceRoot = tvShowFolder.getParentFile().listFiles();
       if (filesInDatasourceRoot == null || filesInDatasourceRoot.length == 0) {
+        LOGGER.warn("TvShow folder not available/empty " + tvShowFolder);
         MessageManager.instance.pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable",
             new String[] { tvShowFolder.getParent() }));
         continue;
@@ -485,11 +487,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       this.datasource = datasource;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.concurrent.Callable#call()
-     */
     @Override
     public String call() throws Exception {
       // get the TV show from this subdir
@@ -522,7 +519,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       }
       if (tvShow != null) {
         tvShow.setDataSource(datasource);
-        findAdditionalTvShowFiles(tvShow, dir);
         // tvShow.saveToDb();
         tvShow.justAdded = true;
         tvShowList.addTvShow(tvShow);
@@ -531,6 +527,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
 
     // find episodes in this tv show folder
     if (tvShow != null) {
+      findAdditionalTvShowFiles(tvShow, dir);
       findTvEpisodes(tvShow, dir);
       if (tvShow.isNewlyAdded()) {
         tvShow.saveToDb();
@@ -549,6 +546,24 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
   private void findAdditionalTvShowFiles(TvShow tvShow, File directory) {
     // find tv show images for this TV show; NOTE: the NFO has been found in TvShow.parseNFO()
     List<File> completeDirContents = new ArrayList<File>(Arrays.asList(directory.listFiles()));
+
+    // search season posters first (-poster pattern would find season posters)
+    for (File file : completeDirContents) {
+      Matcher matcher = seasonPattern.matcher(file.getName());
+      if (matcher.matches() && !file.getName().startsWith("._")) { // MacOS ignore
+        LOGGER.debug("found season poster " + file.getPath());
+        try {
+          int season = Integer.parseInt(matcher.group(1));
+          tvShow.setSeasonPoster(season, file);
+        }
+        catch (Exception e) {
+        }
+      }
+      else if (file.getName().startsWith("season-specials-poster")) {
+        LOGGER.debug("found season specials poster " + file.getPath());
+        tvShow.setSeasonPoster(-1, file);
+      }
+    }
 
     // search for poster or download
     findArtwork(tvShow, completeDirContents, posterPattern1, MediaFileType.POSTER);
@@ -579,30 +594,16 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
     findArtwork(tvShow, completeDirContents, thumbPattern1, MediaFileType.THUMB);
     findArtwork(tvShow, completeDirContents, thumbPattern2, MediaFileType.THUMB);
     downloadArtwork(tvShow, MediaFileType.THUMB);
-
-    // search season posters
-    for (File file : completeDirContents) {
-      Matcher matcher = seasonPattern.matcher(file.getName());
-      if (matcher.matches() && !file.getName().startsWith("._")) { // MacOS ignore
-        LOGGER.debug("found season poster " + file.getPath());
-        try {
-          int season = Integer.parseInt(matcher.group(1));
-          tvShow.setSeasonPoster(season, file);
-        }
-        catch (Exception e) {
-        }
-      }
-      else if (file.getName().startsWith("season-specials-poster")) {
-        LOGGER.debug("found season specials poster " + file.getPath());
-        tvShow.setSeasonPoster(-1, file);
-      }
-    }
   }
 
   private void findArtwork(TvShow show, List<File> directoryContents, Pattern searchPattern, MediaFileType type) {
     for (File file : directoryContents) {
       Matcher matcher = searchPattern.matcher(file.getName());
       if (matcher.matches() && !file.getName().startsWith("._")) { // MacOS ignore
+        // false positive exclusion: poster regexp would also find season posters..
+        if (type == MediaFileType.POSTER && file.getName().matches(seasonPattern.pattern())) {
+          continue;
+        }
         MediaFile mf = new MediaFile(file, type);
         show.addToMediaFiles(mf);
         LOGGER.debug("found " + mf.getType().name().toLowerCase() + ": " + file.getPath());
@@ -644,7 +645,9 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           List<TvShowEpisode> episodes = tvShowList.getTvEpisodesByFile(tvShow, file);
           if (episodes.size() == 0) {
             // try to check what episode//season
-            EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilename(file);
+            // EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilename(file);
+            String relativePath = new File(tvShow.getPath()).toURI().relativize(file.toURI()).getPath();
+            EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(relativePath, tvShow.getTitle());
 
             // second check: is the detected episode (>-1; season >-1) already in tmm and any valid stacking markers found?
             if (result.episodes.size() == 1 && result.season > -1 && result.stackingMarkerFound) {
@@ -665,13 +668,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
             if (result.season == -1) {
               // did the search find a season?
               // no -> search for it in the folder name (relative path between tv show root and the current dir)
-              result.season = TvShowEpisodeAndSeasonParser.detectSeason(new File(tvShow.getPath()).toURI().relativize(file.toURI()).getPath());
-            }
-
-            if (result.episodes.size() == 0) {
-              // if episode STILL empty, try Myron's way of parsing - lol
-              result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(file.getName(), tvShow.getTitle());
-              LOGGER.debug(file.getName() + " - " + result.toString());
+              result.season = TvShowEpisodeAndSeasonParser.detectSeason(relativePath);
             }
 
             List<TvShowEpisode> episodesInNfo = TvShowEpisode.parseNFO(file);
@@ -780,22 +777,21 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
 
     List<TvShowEpisode> episodes = tvShowList.getTvEpisodesByFile(tvShow, firstVideoFile);
     if (episodes.size() == 0) {
-      // try to parse out episodes/season from parent directory
-      EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromDirectory(dir.getParentFile(), tvShow.getPath());
-      List<TvShowEpisode> episodesInNfo = TvShowEpisode.parseNFO(firstVideoFile);
+      String relativePath = new File(tvShow.getPath()).toURI().relativize(firstVideoFile.toURI()).getPath();
+      EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(relativePath, tvShow.getTitle());
 
       if (result.season == -1) {
         // did the search find a season?
         // no -> search for it in the folder name (relative path between tv show root and the current dir)
-        result.season = TvShowEpisodeAndSeasonParser.detectSeason(new File(tvShow.getPath()).toURI().relativize(firstVideoFile.toURI()).getPath());
+        result.season = TvShowEpisodeAndSeasonParser.detectSeason(relativePath);
       }
 
       if (result.episodes.size() == 0) {
-        // if episode STILL empty, try Myron's way of parsing - lol
-        result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(
-            new File(tvShow.getPath()).toURI().relativize(firstVideoFile.toURI()).getPath(), tvShow.getTitle());
-        LOGGER.debug(firstVideoFile.getName() + " - " + result.toString());
+        // try to parse out episodes/season from parent directory
+        result = TvShowEpisodeAndSeasonParser.detectEpisodeFromDirectory(dir.getParentFile(), tvShow.getPath());
       }
+
+      List<TvShowEpisode> episodesInNfo = TvShowEpisode.parseNFO(firstVideoFile);
 
       // FIXME: Episode root is outside of disc folders ?!
       while (dir.getPath().toUpperCase().contains("BDMV") || dir.getPath().toUpperCase().contains("VIDEO_TS")) {

@@ -16,12 +16,14 @@
 package org.tinymediamanager.ui.plaf.light;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
@@ -29,8 +31,6 @@ import javax.swing.JComponent;
 import javax.swing.JMenuBar;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ComponentUI;
-
-import sun.swing.SwingUtilities2;
 
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.BaseButtonUI;
@@ -101,11 +101,12 @@ public class TmmLightButtonUI extends BaseButtonUI {
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
   }
 
-  @SuppressWarnings("restriction")
+  @Override
   protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
     ButtonModel model = b.getModel();
 
-    FontMetrics fm = SwingUtilities2.getFontMetrics(b, g, b.getFont());
+    FontMetrics fm = getFontMetrics(b, g, b.getFont());
+
     int mnemIndex;
     if (JTattooUtilities.getJavaVersion() >= 1.4) {
       mnemIndex = b.getDisplayedMnemonicIndex();
@@ -156,5 +157,16 @@ public class TmmLightButtonUI extends BaseButtonUI {
 
   @Override
   protected void paintFocus(Graphics g, AbstractButton b, Rectangle viewRect, Rectangle textRect, Rectangle iconRect) {
+  }
+
+  @SuppressWarnings("deprecation")
+  private FontMetrics getFontMetrics(JComponent c, Graphics g, Font font) {
+    if (c != null) {
+      // Note: We assume that we're using the FontMetrics
+      // from the widget to layout out text, otherwise we can get
+      // mismatches when printing.
+      return c.getFontMetrics(font);
+    }
+    return Toolkit.getDefaultToolkit().getFontMetrics(font);
   }
 }

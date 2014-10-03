@@ -41,7 +41,7 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
 
   @Override
   public int getColumnCount() {
-    return 6;
+    return 7;
   }
 
   @Override
@@ -64,6 +64,9 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
 
       case 5:
         return BUNDLE.getString("metatag.subtitles"); //$NON-NLS-1$
+
+      case 6:
+        return BUNDLE.getString("metatag.watched"); //$NON-NLS-1$
     }
 
     throw new IllegalStateException();
@@ -101,6 +104,12 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
           return IconManager.DOT_AVAILABLE;
         }
         return IconManager.DOT_UNAVAILABLE;
+
+      case 6:
+        if (movie.isWatched()) {
+          return IconManager.DOT_AVAILABLE;
+        }
+        return IconManager.DOT_UNAVAILABLE;
     }
 
     throw new IllegalStateException();
@@ -120,6 +129,7 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
       case 3:
       case 4:
       case 5:
+      case 6:
         return ImageIcon.class;
     }
 
@@ -140,6 +150,7 @@ public class MovieTableFormat implements AdvancedTableFormat<Movie> {
       case 3:
       case 4:
       case 5:
+      case 6:
         return imageComparator;
     }
 

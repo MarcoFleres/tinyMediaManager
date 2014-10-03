@@ -210,6 +210,11 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
       id = options.getId(providerInfo.getId());
     }
 
+    // do we have the id in the alternate form?
+    if (StringUtils.isEmpty(id)) {
+      id = options.getId("tvdb");
+    }
+
     if (StringUtils.isEmpty(id)) {
       return md;
     }
@@ -302,6 +307,11 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
       id = options.getId(providerInfo.getId());
     }
 
+    // still no ID? try the old one
+    if (StringUtils.isEmpty(id)) {
+      id = options.getId("tvdb");
+    }
+
     if (StringUtils.isEmpty(id)) {
       return md;
     }
@@ -386,10 +396,12 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     }
 
     // Thumb
-    MediaArtwork ma = new MediaArtwork();
-    ma.setType(MediaArtworkType.THUMB);
-    ma.setDefaultUrl(episode.getFilename());
-    md.addMediaArt(ma);
+    if (options.getArtworkType() == MediaArtworkType.ALL || options.getArtworkType() == MediaArtworkType.THUMB) {
+      MediaArtwork ma = new MediaArtwork();
+      ma.setType(MediaArtworkType.THUMB);
+      ma.setDefaultUrl(episode.getFilename());
+      md.addMediaArt(ma);
+    }
 
     return md;
   }
@@ -407,6 +419,11 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     // get the id from the options
     if (StringUtils.isEmpty(id)) {
       id = options.getId(providerInfo.getId());
+    }
+
+    // do we have the id in the alternate form?
+    if (StringUtils.isEmpty(id)) {
+      id = options.getId("tvdb");
     }
 
     if (StringUtils.isEmpty(id)) {
@@ -530,6 +547,11 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     // do we have an id from the options?
     if (StringUtils.isEmpty(id)) {
       id = options.getId(providerInfo.getId());
+    }
+
+    // do we have the id in the alternate form?
+    if (StringUtils.isEmpty(id)) {
+      id = options.getId("tvdb");
     }
 
     if (StringUtils.isEmpty(id)) {

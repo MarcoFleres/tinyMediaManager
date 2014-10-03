@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,20 +78,48 @@ public class MediaEntityImageFetcherTask implements Runnable {
       // debug message
       LOGGER.debug("writing " + type + " " + filename);
 
+      // check if old and new file are the same (possible if you select it in the imagechooser)
+      boolean sameFile = false;
+      if (url.startsWith("file:")) {
+        String newUrl = url.replace("file:/", "");
+        File file = new File(newUrl);
+        File destFile = new File(entity.getPath(), filename);
+        if (file.equals(destFile)) {
+          sameFile = true;
+        }
+      }
+
       // fetch and store images
-      Url url1 = new Url(url);
-      FileOutputStream outputStream = new FileOutputStream(new File(entity.getPath(), filename));
-      InputStream is = url1.getInputStream();
-      IOUtils.copy(is, outputStream);
-      outputStream.flush();
-      try {
-        outputStream.getFD().sync(); // wait until file has been completely written
+      if (!sameFile) {
+        Url url1 = new Url(url);
+        File tempFile = new File(entity.getPath(), filename + ".part");
+        FileOutputStream outputStream = new FileOutputStream(tempFile);
+        InputStream is = url1.getInputStream();
+        IOUtils.copy(is, outputStream);
+        outputStream.flush();
+        try {
+          outputStream.getFD().sync(); // wait until file has been completely written
+        }
+        catch (Exception e) {
+          // empty here -> just not let the thread crash
+        }
+        outputStream.close();
+        is.close();
+
+        // check if the file has been downloaded
+        if (!tempFile.exists() || tempFile.length() == 0) {
+          throw new Exception("0byte file downloaded: " + filename);
+        }
+
+        // delete the old one if exisiting
+        File destinationFile = new File(entity.getPath(), filename);
+        FileUtils.deleteQuietly(destinationFile);
+
+        // move the temp file to the expected filename
+        if (!Utils.moveFileSafe(tempFile, destinationFile)) {
+          throw new Exception("renaming temp file failed: " + filename);
+        }
       }
-      catch (Exception e) {
-        // empty here -> just not let the thread crash
-      }
-      outputStream.close();
-      is.close();
 
       // has tmm been shut down?
       if (Thread.interrupted()) {
@@ -121,10 +150,20 @@ public class MediaEntityImageFetcherTask implements Runnable {
     }
     catch (InterruptedException e) {
       LOGGER.warn("interrupted image download");
+      // remove temp file
+      File tempFile = new File(entity.getPath(), filename + ".part");
+      if (tempFile.exists()) {
+        FileUtils.deleteQuietly(tempFile);
+      }
       return;
     }
     catch (Exception e) {
       LOGGER.debug("fetch image", e);
+      // remove temp file
+      File tempFile = new File(entity.getPath(), filename + ".part");
+      if (tempFile.exists()) {
+        FileUtils.deleteQuietly(tempFile);
+      }
       // fallback
       if (firstImage && StringUtils.isNotBlank(oldFilename)) {
         switch (type) {

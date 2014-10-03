@@ -30,36 +30,12 @@ class Log4jBackstop implements Thread.UncaughtExceptionHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(Log4jBackstop.class);
 
   public void uncaughtException(Thread t, Throwable ex) {
+    // sometimes we get assertion errors in beansbinding event handling - do not show these
+    if (ex instanceof AssertionError && ex.getStackTrace().length > 0 && "BeanProperty.java".equals(ex.getStackTrace()[0].getFileName())) {
+      return;
+    }
     LOGGER.error("Uncaught exception in thread: " + t.getName(), ex);
     if (!GraphicsEnvironment.isHeadless()) {
-      // TaskDialog dlg = new TaskDialog(MainWindow.getActiveInstance(), "Exception");
-      //
-      // String msg = ex.getMessage();
-      // String className = ex.getClass().getName();
-      // boolean noMessage = Strings.isEmpty(msg);
-      //
-      // dlg.setInstruction("Whoops. Something unforeseen has happened.\nPlease restart TMM and try again.\nIf it happens again, we would kindly ask you to submit a bugreport.\n\n");
-      // dlg.setText(noMessage ? "" : className);
-      //
-      // dlg.setIcon(TaskDialog.StandardIcon.ERROR);
-      // dlg.setCommands(StandardCommand.CANCEL.derive(TaskDialog.makeKey("Close")));
-      //
-      // JTextArea text = new JTextArea();
-      // text.setEditable(false);
-      // text.setFont(UIManager.getFont("Label.font"));
-      // text.setText(Strings.stackStraceAsString(ex));
-      // text.setCaretPosition(0);
-      //
-      // JScrollPane scroller = new JScrollPane(text);
-      // scroller.setPreferredSize(new Dimension(400, 200));
-      // dlg.getDetails().setExpandableComponent(scroller);
-      // dlg.getDetails().setExpanded(noMessage);
-      //
-      // dlg.setResizable(true);
-      //
-      // // Issue 22: Exception can be printed by user if required
-      // // ex.printStackTrace();
-      // dlg.setVisible(true);
       MessageDialog.showExceptionWindow(ex);
     }
   }

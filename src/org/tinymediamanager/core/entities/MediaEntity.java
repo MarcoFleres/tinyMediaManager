@@ -481,6 +481,13 @@ public abstract class MediaEntity extends AbstractModelObject {
     firePropertyChange(key, null, value);
   }
 
+  public void removeId(String key) {
+    Object obj = ids.remove(key);
+    if (obj != null) {
+      firePropertyChange(key, obj, null);
+    }
+  }
+
   public Object getId(String key) {
     return ids.get(key);
   }
@@ -492,6 +499,16 @@ public abstract class MediaEntity extends AbstractModelObject {
     readWriteLock.writeLock().lock();
     // need to synchronize on the entitymanager :(
     synchronized (entityManager) {
+      // only store the MF if it is not in the list or if the type has been changed
+      if (mediaFiles.contains(mediaFile)) {
+        int i = mediaFiles.indexOf(mediaFile);
+        if (i >= 0) {
+          MediaFile oldMf = mediaFiles.get(i);
+          if (oldMf.getType() != mediaFile.getType()) {
+            mediaFiles.remove(i);
+          }
+        }
+      }
       if (!mediaFiles.contains(mediaFile)) {
         mediaFiles.add(mediaFile);
         sortMediaFiles();
@@ -580,7 +597,11 @@ public abstract class MediaEntity extends AbstractModelObject {
   }
 
   public List<MediaFile> getMediaFiles() {
-    return mediaFiles;
+    List<MediaFile> mf = new ArrayList<MediaFile>();
+    readWriteLock.readLock().lock();
+    mf.addAll(mediaFiles);
+    readWriteLock.readLock().unlock();
+    return mf;
   }
 
   public List<MediaFile> getMediaFiles(MediaFileType type) {

@@ -45,6 +45,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 
 import org.apache.commons.io.FileUtils;
@@ -54,7 +55,9 @@ import org.jdesktop.beansbinding.ELProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.Constants;
+import org.tinymediamanager.core.License;
 import org.tinymediamanager.core.TmmModuleManager;
+import org.tinymediamanager.core.UpdaterTask;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.MovieList;
@@ -81,6 +84,7 @@ import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.TmmUILogCollector;
 import org.tinymediamanager.ui.TmmWindowSaver;
+import org.tinymediamanager.ui.dialogs.MessageDialog;
 import org.tinymediamanager.ui.dialogs.WhatsNewDialog;
 import org.tinymediamanager.ui.plaf.light.TmmLightLookAndFeel;
 
@@ -225,6 +229,7 @@ public class TinyMediaManager {
     LOGGER.info("os.name          : " + System.getProperty("os.name"));
     LOGGER.info("os.version       : " + System.getProperty("os.version"));
     LOGGER.info("os.arch          : " + System.getProperty("os.arch"));
+    LOGGER.trace("network.id       : " + License.getMac());
     LOGGER.info("java.version     : " + System.getProperty("java.version"));
     if (Globals.isRunningJavaWebStart()) {
       LOGGER.info("java.webstart    : true");
@@ -460,16 +465,18 @@ public class TinyMediaManager {
           }
         }
         catch (javax.persistence.PersistenceException e) {
-          if (!GraphicsEnvironment.isHeadless()) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
-          }
           LOGGER.error("PersistenceException", e);
+          if (!GraphicsEnvironment.isHeadless()) {
+            MessageDialog.showExceptionWindow(e);
+            System.exit(1);
+          }
         }
         catch (Exception e) {
+          LOGGER.error("Exception while start of tmm", e);
           if (!GraphicsEnvironment.isHeadless()) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
+            MessageDialog.showExceptionWindow(e);
+            System.exit(1);
           }
-          LOGGER.error("start of tmm", e);
         }
       }
 
@@ -725,6 +732,24 @@ public class TinyMediaManager {
   private static void startCommandLineTasks() {
     try {
       TmmTask task = null;
+      boolean updateAvailable = false;
+
+      if (scrapeNew || scrapeUnscraped) {
+        // only do an update check when we are scraping online
+        // no need for a "forced" check for just updating the datasource
+        final SwingWorker<Boolean, Void> updateWorker = new UpdaterTask();
+        updateWorker.run();
+        updateAvailable = updateWorker.get(); // blocking
+        if (updateAvailable) {
+          LOGGER.warn("There's a new TMM update available!");
+          LOGGER.warn("Please update to remove waiting time ;)");
+          for (int i = 20; i > 0; i--) {
+            System.out.print(i + "..");
+            Thread.sleep(1000);
+          }
+          System.out.println("0");
+        }
+      }
 
       // update movies //////////////////////////////////////////////
       if (updateMovies) {
@@ -873,6 +898,12 @@ public class TinyMediaManager {
         if (allOk) {
           LOGGER.info("no problems found - everything ok :)");
         }
+      }
+
+      if (updateAvailable) {
+        LOGGER.warn("=====================================================");
+        LOGGER.warn("There's a new TMM version available! Please update!");
+        LOGGER.warn("=====================================================");
       }
     }
     catch (Exception e) {

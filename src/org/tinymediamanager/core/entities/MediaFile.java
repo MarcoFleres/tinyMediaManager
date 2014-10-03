@@ -16,8 +16,11 @@
 package org.tinymediamanager.core.entities;
 
 import java.io.File;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -174,7 +177,6 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
   public MediaFile(File f, MediaFileType type) {
     this.path = f.getParent(); // just path w/o filename
     this.filename = f.getName();
-    this.filedate = f.lastModified();
     this.file = f;
     if (type == null) {
       this.type = parseType();
@@ -242,7 +244,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     }
 
     if (Globals.settings.getVideoFileType().contains("." + ext)) {
-      if (name.contains("trailer") || foldername.contains("trailer")) {
+      if (basename.matches("(?i).*[_.-]trailer?$") || foldername.equalsIgnoreCase("trailer")) {
         return MediaFileType.TRAILER;
       }
 
@@ -675,6 +677,11 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
    *          the new video codec
    */
   public void setVideoCodec(String newValue) {
+    // AVC = h264 = x264; display as h264
+    if ("avc".equalsIgnoreCase(newValue) || "x264".equalsIgnoreCase(newValue)) {
+      newValue = "h264";
+    }
+
     String oldValue = this.videoCodec;
     this.videoCodec = newValue;
     firePropertyChange("videoCodec", oldValue, newValue);
@@ -758,8 +765,9 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     else if (w <= 720 && h <= 480) {
       return VIDEO_FORMAT_480P;
     }
-    else if (w <= 768 && h <= 576) {
-      // 720x576 (PAL) (768 when rescaled for square pixels)
+    // else if (w <= 768 && h <= 576) {
+    else if (w <= 776 && h <= 592) {
+      // 720x576 (PAL) (handbrake sometimes encode it to a max of 776 x 592)
       return VIDEO_FORMAT_576P;
     }
     else if (w <= 960 && h <= 544) {
@@ -1057,6 +1065,10 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
   public void gatherMediaInformation(boolean force) {
     // check for supported filetype
     if (!isValidMediainfoFormat()) {
+      // okay, we have no valid MI file, be sure it will not be triggered any more
+      if (StringUtils.isBlank(getContainerFormat())) {
+        setContainerFormat(getExtension());
+      }
       return;
     }
 
@@ -1066,6 +1078,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     }
 
     LOGGER.debug("start MediaInfo for " + this.getFile().getAbsolutePath());
+
     mediaInfo = getMediaInfo();
     try {
       setFilesize(Long.parseLong(getMediaInfo(StreamKind.General, 0, "FileSize")));
@@ -1075,12 +1088,23 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
       closeMediaInfo();
       return;
     }
+    LOGGER.trace("got MI");
 
     // do not work further on 0 byte files
     if (getFilesize() == 0) {
       LOGGER.warn("0 Byte file detected: " + this.filename);
       closeMediaInfo();
       return;
+    }
+
+    // parse lastmodified
+    try {
+      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      Date date = dateFormat.parse(getMediaInfo(StreamKind.General, 0, "File_Modified_Date_Local"));
+      filedate = date.getTime();
+    }
+    catch (Exception e) {
+      filedate = 0;
     }
 
     String height = "";
@@ -1096,7 +1120,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
         height = getMediaInfo(StreamKind.Video, 0, "Height");
         scanType = getMediaInfo(StreamKind.Video, 0, "ScanType");
         width = getMediaInfo(StreamKind.Video, 0, "Width");
-        videoCodec = getMediaInfo(StreamKind.Video, 0, "Encoded_Library/Name", "CodecID/Hint", "Format");
+        videoCodec = getMediaInfo(StreamKind.Video, 0, "CodecID/Hint", "Format");
 
         // get audio streams
         // int streams = getMediaInfo().streamCount(StreamKind.Audio);
@@ -1286,7 +1310,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
         height = getMediaInfo(StreamKind.Image, 0, "Height");
         // scanType = getMediaInfo(StreamKind.Image, 0, "ScanType"); // no scantype on graphics
         width = getMediaInfo(StreamKind.Image, 0, "Width");
-        videoCodec = getMediaInfo(StreamKind.Image, 0, "Encoded_Library/Name", "CodecID/Hint", "Format");
+        videoCodec = getMediaInfo(StreamKind.Image, 0, "CodecID/Hint", "Format");
         // System.out.println(height + "-" + width + "-" + videoCodec);
         break;
 
@@ -1307,7 +1331,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     else {
       String extensions = getMediaInfo(StreamKind.General, 0, "Codec/Extensions", "Format");
       // get first extension
-      setContainerFormat(StringUtils.isEmpty(extensions) ? "" : new Scanner(extensions).next().toLowerCase());
+      setContainerFormat(StringUtils.isBlank(extensions) ? "" : new Scanner(extensions).next().toLowerCase());
 
       // if container format is still empty -> insert the extension
       if (StringUtils.isBlank(containerFormat)) {
@@ -1379,8 +1403,10 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
         break;
     }
 
+    LOGGER.trace("extracted MI");
     // close mediainfo lib
     closeMediaInfo();
+    LOGGER.trace("closed MI");
   }
 
   /**
