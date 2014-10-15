@@ -59,6 +59,7 @@ import org.jdesktop.swingbinding.SwingBindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.Globals;
+import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowScrapers;
@@ -370,7 +371,7 @@ public class TvShowEpisodeEditorDialog extends TmmDialog implements ActionListen
       else {
         spFirstAired.setValue(INITIAL_DATE);
       }
-      lblThumb.setImagePath(episodeToEdit.getThumb());
+      lblThumb.setImagePath(episodeToEdit.getArtworkFilename(MediaFileType.THUMB));
       spRating.setModel(new SpinnerNumberModel(episodeToEdit.getRating(), 0.0, 10.0, 0.1));
       chckbxWatched.setSelected(episodeToEdit.isWatched());
       taPlot.setText(episodeToEdit.getPlot());
@@ -435,8 +436,8 @@ public class TvShowEpisodeEditorDialog extends TmmDialog implements ActionListen
       episodeToEdit.setWriter(tfWriter.getText());
       episodeToEdit.setActors(cast);
 
-      if (StringUtils.isNotEmpty(lblThumb.getImageUrl()) && !lblThumb.getImageUrl().equals(episodeToEdit.getThumbUrl())) {
-        episodeToEdit.setThumbUrl(lblThumb.getImageUrl());
+      if (StringUtils.isNotEmpty(lblThumb.getImageUrl()) && !lblThumb.getImageUrl().equals(episodeToEdit.getArtworkUrl(MediaFileType.THUMB))) {
+        episodeToEdit.setArtworkUrl(lblThumb.getImageUrl(), MediaFileType.THUMB);
         episodeToEdit.writeThumbImage();
       }
 

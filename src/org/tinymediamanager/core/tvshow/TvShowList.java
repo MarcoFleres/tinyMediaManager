@@ -17,19 +17,16 @@ package org.tinymediamanager.core.tvshow;
 
 import static org.tinymediamanager.core.Constants.*;
 
-import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.observablecollections.ObservableCollections;
@@ -38,9 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.Globals;
 import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.MediaFileType;
-import org.tinymediamanager.core.Message;
-import org.tinymediamanager.core.Message.MessageLevel;
-import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaFileAudioStream;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
@@ -54,7 +48,9 @@ import org.tinymediamanager.scraper.MediaType;
 import org.tinymediamanager.scraper.anidb.AniDBMetadataProvider;
 import org.tinymediamanager.scraper.fanarttv.FanartTvMetadataProvider;
 import org.tinymediamanager.scraper.thetvdb.TheTvDbMetadataProvider;
-import org.tinymediamanager.ui.UTF8Control;
+
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * The Class TvShowList.
@@ -62,27 +58,42 @@ import org.tinymediamanager.ui.UTF8Control;
  * @author Manuel Laggner
  */
 public class TvShowList extends AbstractModelObject {
-  private static final Logger         LOGGER                = LoggerFactory.getLogger(TvShowList.class);
-  private static final ResourceBundle BUNDLE                = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
-  private static TvShowList           instance              = null;
+  private static final Logger    LOGGER                = LoggerFactory.getLogger(TvShowList.class);
+  private static TvShowList      instance              = null;
 
-  private List<TvShow>                tvShowList            = ObservableCollections.observableList(Collections
-                                                                .synchronizedList(new ArrayList<TvShow>()));
-  private List<String>                tvShowTagsObservable  = ObservableCollections.observableList(Collections
-                                                                .synchronizedList(new ArrayList<String>()));
-  private List<String>                episodeTagsObservable = ObservableCollections.observableList(Collections
-                                                                .synchronizedList(new ArrayList<String>()));
-  private List<String>                videoCodecsObservable = ObservableCollections.observableList(Collections
-                                                                .synchronizedList(new ArrayList<String>()));
-  private List<String>                audioCodecsObservable = ObservableCollections.observableList(Collections
-                                                                .synchronizedList(new ArrayList<String>()));
+  private ObjectWriter           tvShowObjectWriter;
+  private PreparedStatement      preparedStatementTvShowSave;
+  private PreparedStatement      preparedStatementTvShowDelete;
+  private ObjectWriter           tvShowEpisodeObjectWriter;
+  private PreparedStatement      preparedStatementTvShowEpisodeSave;
+  private PreparedStatement      preparedStatementTvShowEpisodeDelete;
 
-  private PropertyChangeListener      propertyChangeListener;
+  private List<TvShow>           tvShowList            = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<TvShow>()));
+  private List<String>           tvShowTagsObservable  = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<String>()));
+  private List<String>           episodeTagsObservable = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<String>()));
+  private List<String>           videoCodecsObservable = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<String>()));
+  private List<String>           audioCodecsObservable = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<String>()));
+
+  private PropertyChangeListener propertyChangeListener;
 
   /**
    * Instantiates a new TvShowList.
    */
   private TvShowList() {
+    try {
+      preparedStatementTvShowSave = TvShowModuleManager.getInstance().getConnection().prepareStatement("merge into tv_show values(?,?)");
+      preparedStatementTvShowDelete = TvShowModuleManager.getInstance().getConnection().prepareStatement("delete tv_show where id = ?");
+      preparedStatementTvShowEpisodeSave = TvShowModuleManager.getInstance().getConnection().prepareStatement("merge into episode values(?,?)");
+      preparedStatementTvShowEpisodeDelete = TvShowModuleManager.getInstance().getConnection().prepareStatement("delete episode where id = ?");
+    }
+    catch (Exception e) {
+      LOGGER.error("failed creating prepared SQL statements: " + e.getMessage());
+    }
+
+    // create writer
+    tvShowObjectWriter = TvShowModuleManager.getInstance().getObjectMapper().writerWithType(TvShow.class);
+    tvShowEpisodeObjectWriter = TvShowModuleManager.getInstance().getObjectMapper().writerWithType(TvShowEpisode.class);
+
     // the tag listener: its used to always have a full list of all tags used in tmm
     propertyChangeListener = new PropertyChangeListener() {
       @Override
@@ -175,17 +186,11 @@ public class TvShowList extends AbstractModelObject {
     int oldValue = tvShowList.size();
     tvShow.removeAllEpisodes();
     tvShowList.remove(tvShow);
-
-    boolean newTransaction = false;
-    if (!TvShowModuleManager.getInstance().getEntityManager().getTransaction().isActive()) {
-      TvShowModuleManager.getInstance().getEntityManager().getTransaction().begin();
-      newTransaction = true;
+    try {
+      removeTvShowFromDb(tvShow);
     }
-
-    TvShowModuleManager.getInstance().getEntityManager().remove(tvShow);
-
-    if (newTransaction) {
-      TvShowModuleManager.getInstance().getEntityManager().getTransaction().commit();
+    catch (Exception e) {
+      LOGGER.error("failed removing TV show from DB: " + e.getMessage());
     }
 
     firePropertyChange(TV_SHOWS, null, tvShowList);
@@ -205,17 +210,11 @@ public class TvShowList extends AbstractModelObject {
     tvShow.deleteFilesSafely();
     tvShow.removeAllEpisodes();
     tvShowList.remove(tvShow);
-
-    boolean newTransaction = false;
-    if (!TvShowModuleManager.getInstance().getEntityManager().getTransaction().isActive()) {
-      TvShowModuleManager.getInstance().getEntityManager().getTransaction().begin();
-      newTransaction = true;
+    try {
+      removeTvShowFromDb(tvShow);
     }
-
-    TvShowModuleManager.getInstance().getEntityManager().remove(tvShow);
-
-    if (newTransaction) {
-      TvShowModuleManager.getInstance().getEntityManager().getTransaction().commit();
+    catch (Exception e) {
+      LOGGER.error("failed removing TV show from DB: " + e.getMessage());
     }
 
     firePropertyChange(TV_SHOWS, null, tvShowList);
@@ -250,44 +249,71 @@ public class TvShowList extends AbstractModelObject {
   /**
    * Load tv shows from database.
    */
-  public void loadTvShowsFromDatabase(EntityManager entityManager) {
-    List<TvShow> tvShows = null;
+  public void loadTvShowsFromDatabase() {
+    // load all TV shows from the database
+    ObjectReader tvShowObjectReader = TvShowModuleManager.getInstance().getObjectMapper().reader(TvShow.class);
     try {
-      // load tv shows
-      TypedQuery<TvShow> query = entityManager.createQuery("SELECT tvShow FROM TvShow tvShow", TvShow.class);
-      tvShows = query.getResultList();
-      if (tvShows != null) {
-        LOGGER.info("found " + tvShows.size() + " tv shows in database");
-        for (Object obj : tvShows) {
-          if (obj instanceof TvShow) {
-            TvShow tvShow = (TvShow) obj;
-            tvShow.initializeAfterLoading();
-            for (TvShowEpisode episode : tvShow.getEpisodes()) {
-              episode.initializeAfterLoading();
-              updateEpisodeTags(episode);
-              updateMediaInformationLists(episode);
-            }
-
-            // for performance reasons we add tv shows directly
-            tvShowList.add(tvShow);
-            updateTvShowTags(tvShow);
-            tvShow.addPropertyChangeListener(propertyChangeListener);
-          }
-          else {
-            LOGGER.error("retrieved no tv show: " + obj);
-          }
+      Statement select = TvShowModuleManager.getInstance().getConnection().createStatement();
+      ResultSet result = select.executeQuery("SELECT * FROM tv_show");
+      while (result.next()) { // process results one row at a time
+        UUID uuid = UUID.fromString(result.getString(1));
+        String json = result.getString(2);
+        try {
+          TvShow tvShow = tvShowObjectReader.readValue(json);
+          tvShow.setDbId(uuid);
+          tvShowList.add(tvShow);
         }
-
-        // check for corrupted media entities
-        checkAndCleanupMediaFiles();
+        catch (Exception e) {
+          LOGGER.warn("problem decoding tv show json string: ", e);
+        }
       }
-      else {
-        LOGGER.debug("found no movies in database");
-      }
+      LOGGER.info("found " + tvShowList.size() + " TV shows in database");
     }
     catch (Exception e) {
-      LOGGER.error("loadTvShowsFromDatabase", e);
-      MessageManager.instance.pushMessage(new Message(MessageLevel.ERROR, "", "message.database.loadtvshows"));
+      LOGGER.error("failed retrieving TV shows: " + e.getMessage());
+    }
+
+    // load all episodes from the database
+    ObjectReader episodeObjectReader = TvShowModuleManager.getInstance().getObjectMapper().reader(TvShowEpisode.class);
+    try {
+      int episodeCount = 0;
+      Statement select = TvShowModuleManager.getInstance().getConnection().createStatement();
+      ResultSet result = select.executeQuery("SELECT * FROM episode");
+      while (result.next()) { // process results one row at a time
+        episodeCount++;
+        UUID uuid = UUID.fromString(result.getString(1));
+        String json = result.getString(2);
+        try {
+          TvShowEpisode episode = episodeObjectReader.readValue(json);
+          episode.setDbId(uuid);
+          episode.initializeAfterLoading();
+          updateEpisodeTags(episode);
+          updateMediaInformationLists(episode);
+
+          // and assign it the the right TV show
+          for (TvShow tvShow : tvShowList) {
+            if (tvShow.getDbId().equals(episode.getTvShowDbId())) {
+              episode.setTvShow(tvShow);
+              tvShow.addEpisode(episode);
+              break;
+            }
+          }
+        }
+        catch (Exception e) {
+          LOGGER.warn("problem decoding episode json string: ", e);
+          continue;
+        }
+      }
+      LOGGER.info("found " + episodeCount + " episodes in database");
+    }
+    catch (Exception e) {
+      LOGGER.error("failed retrieving episodes: " + e.getMessage());
+    }
+
+    // initialize TV shows
+    for (TvShow tvShow : tvShowList) {
+      tvShow.initializeAfterLoading();
+      tvShow.addPropertyChangeListener(propertyChangeListener);
     }
   }
 
@@ -694,32 +720,37 @@ public class TvShowList extends AbstractModelObject {
     return newEp;
   }
 
-  /**
-   * check if there are movies without (at least) one VIDEO mf
-   */
-  private void checkAndCleanupMediaFiles() {
-    boolean problemsDetected = false;
-    for (TvShow tvShow : tvShowList) {
-      for (TvShowEpisode episode : new ArrayList<TvShowEpisode>(tvShow.getEpisodes())) {
-        List<MediaFile> mfs = episode.getMediaFiles(MediaFileType.VIDEO);
-        if (mfs.isEmpty()) {
-          tvShow.removeEpisode(episode);
-          problemsDetected = true;
-        }
-      }
-    }
+  public void persistTvShow(TvShow tvShow) throws Exception {
+    String json = tvShowObjectWriter.writeValueAsString(tvShow);
 
-    if (problemsDetected) {
-      LOGGER.warn("episodes without VIDEOs detected");
-      // since we have no active UI yet, push a popup message in an own window
-      if (!GraphicsEnvironment.isHeadless()) {
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            JOptionPane.showMessageDialog(null, BUNDLE.getString("message.database.corrupteddata"));
-          }
-        });
-      }
+    synchronized (preparedStatementTvShowSave) {
+      preparedStatementTvShowSave.setString(1, tvShow.getDbId().toString());
+      preparedStatementTvShowSave.setString(2, json);
+      preparedStatementTvShowSave.executeUpdate();
+    }
+  }
+
+  public void removeTvShowFromDb(TvShow tvShow) throws Exception {
+    synchronized (preparedStatementTvShowDelete) {
+      preparedStatementTvShowDelete.setString(1, tvShow.getDbId().toString());
+      preparedStatementTvShowDelete.executeUpdate();
+    }
+  }
+
+  public void persistTvShowEpisode(TvShowEpisode episode) throws Exception {
+    String json = tvShowEpisodeObjectWriter.writeValueAsString(episode);
+
+    synchronized (preparedStatementTvShowEpisodeSave) {
+      preparedStatementTvShowEpisodeSave.setString(1, episode.getDbId().toString());
+      preparedStatementTvShowEpisodeSave.setString(2, json);
+      preparedStatementTvShowEpisodeSave.executeUpdate();
+    }
+  }
+
+  public void removeTvShowEpisodeFromDb(TvShowEpisode episode) throws Exception {
+    synchronized (preparedStatementTvShowEpisodeDelete) {
+      preparedStatementTvShowEpisodeDelete.setString(1, episode.getDbId().toString());
+      preparedStatementTvShowEpisodeDelete.executeUpdate();
     }
   }
 }

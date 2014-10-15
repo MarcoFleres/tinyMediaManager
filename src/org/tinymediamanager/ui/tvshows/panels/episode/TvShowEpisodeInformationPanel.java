@@ -38,6 +38,7 @@ import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
+import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.ui.ColumnLayout;
@@ -354,8 +355,8 @@ public class TvShowEpisodeInformationPanel extends JPanel {
 
   private void setEpisodeThumb(TvShowEpisode tvShowEpisode) {
     lblEpisodeThumb.clearImage();
-    lblEpisodeThumb.setImagePath(tvShowEpisode.getThumb());
-    Dimension thumbSize = tvShowEpisode.getThumbSize();
+    lblEpisodeThumb.setImagePath(tvShowEpisode.getArtworkFilename(MediaFileType.THUMB));
+    Dimension thumbSize = tvShowEpisode.getArtworkDimension(MediaFileType.THUMB);
     if (thumbSize.width > 0 && thumbSize.height > 0) {
       lblEpisodeThumbSize.setText(BUNDLE.getString("mediafiletype.thumb") + " - " + thumbSize.width + "x" + thumbSize.height); //$NON-NLS-1$
     }

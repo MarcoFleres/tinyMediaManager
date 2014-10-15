@@ -370,7 +370,7 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
                     MediaType.TV_SHOW);
                 dialog.setLocationRelativeTo(MainWindow.getActiveInstance());
                 dialog.setVisible(true);
-                tvShowToScrape.setPosterUrl(lblImage.getImageUrl());
+                tvShowToScrape.setArtworkUrl(lblImage.getImageUrl(), MediaFileType.POSTER);
                 tvShowToScrape.downloadArtwork(MediaFileType.POSTER);
               }
 
@@ -382,7 +382,7 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
                 ImageChooserDialog dialog = new ImageChooserDialog(tvShowToScrape.getIds(), ImageType.FANART, artworkProviders, lblImage,
                     extrathumbs, extrafanarts, MediaType.TV_SHOW);
                 dialog.setVisible(true);
-                tvShowToScrape.setFanartUrl(lblImage.getImageUrl());
+                tvShowToScrape.setArtworkUrl(lblImage.getImageUrl(), MediaFileType.FANART);
                 tvShowToScrape.downloadArtwork(MediaFileType.FANART);
               }
 
@@ -392,7 +392,7 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
                 ImageChooserDialog dialog = new ImageChooserDialog(tvShowToScrape.getIds(), ImageType.BANNER, artworkProviders, lblImage, null, null,
                     MediaType.TV_SHOW);
                 dialog.setVisible(true);
-                tvShowToScrape.setBannerUrl(lblImage.getImageUrl());
+                tvShowToScrape.setArtworkUrl(lblImage.getImageUrl(), MediaFileType.BANNER);
                 tvShowToScrape.downloadArtwork(MediaFileType.BANNER);
               }
             }

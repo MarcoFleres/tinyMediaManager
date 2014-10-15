@@ -151,17 +151,27 @@ public class StrgUtils {
   public static Date parseDate(String dateAsString) throws ParseException {
     Date date = null;
 
-    Pattern datePattern = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
-    Matcher m = datePattern.matcher(dateAsString);
-    if (m.find()) {
-      date = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
-    }
-    else {
-      datePattern = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
-      m = datePattern.matcher(dateAsString);
+    try {
+      Pattern datePattern = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
+      Matcher m = datePattern.matcher(dateAsString);
       if (m.find()) {
-        date = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+        date = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
       }
+      else {
+        datePattern = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
+        m = datePattern.matcher(dateAsString);
+        if (m.find()) {
+          date = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+        }
+
+        else {
+          // still not found; try to create a Date object out of it
+          date = new Date(Long.parseLong(dateAsString));
+        }
+      }
+    }
+    catch (Exception e) {
+      date = null;
     }
 
     if (date == null) {

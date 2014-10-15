@@ -16,14 +16,18 @@
 package org.tinymediamanager.core.tvshow;
 
 import java.io.File;
-
-import javax.persistence.EntityManager;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 import org.apache.commons.io.FileUtils;
 import org.tinymediamanager.Globals;
 import org.tinymediamanager.core.Constants;
 import org.tinymediamanager.core.ITmmModule;
-import org.tinymediamanager.core.TmmModuleManager;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * The class TvShowModuleManager. Used to manage the tv show module
@@ -32,11 +36,13 @@ import org.tinymediamanager.core.TmmModuleManager;
  */
 public class TvShowModuleManager implements ITmmModule {
   private static final String        MODULE_TITLE = "TV show management";
-  // private static final String TV_SHOW_DB = "tvshow.odb";
+  private static final String        TV_SHOW_DB   = "tvshows";
   private static TvShowModuleManager instance;
 
   private boolean                    enabled;
-  private EntityManager              entityManager;
+
+  private ObjectMapper               objectMapper;
+  private Connection                 connection;
 
   private TvShowModuleManager() {
     enabled = false;
@@ -56,43 +62,33 @@ public class TvShowModuleManager implements ITmmModule {
 
   @Override
   public void startUp() throws Exception {
-    // // enhance if needed
-    // if (System.getProperty("tmmenhancer") != null) {
-    // com.objectdb.Enhancer.enhance("org.tinymediamanager.core.entities.*");
-    // com.objectdb.Enhancer.enhance("org.tinymediamanager.core.tvshow.entities.*");
-    // com.objectdb.Enhancer.enhance("org.tinymediamanager.scraper.MediaTrailer");
-    // }
-    //
-    // // get a connection to the database
-    // entityManagerFactory = Persistence.createEntityManagerFactory(TV_SHOW_DB);
-    // try {
-    // entityManager = entityManagerFactory.createEntityManager();
-    // }
-    // catch (PersistenceException e) {
-    // if (e.getCause().getMessage().contains("does not match db file")) {
-    // // happens when there's a recovery file which does not match (cannot be recovered) - just delete and try again
-    // FileUtils.deleteQuietly(new File(TV_SHOW_DB + "$"));
-    // entityManager = entityManagerFactory.createEntityManager();
-    // }
-    // else {
-    // // unknown
-    // throw (e);
-    // }
-    // }
+    // start and configure h2
+    Class.forName("org.h2.Driver");
+    connection = DriverManager.getConnection("jdbc:h2:./" + TV_SHOW_DB + ";compress=true;defrag_always=true", "", "");
 
-    // temp solution for a combined DB
-    entityManager = TmmModuleManager.getInstance().getEntityManager();
+    Statement stat = connection.createStatement();
+    stat.execute("create table if not exists tv_show(id uuid primary key, data clob)");
+    stat.execute("create table if not exists episode(id uuid primary key, data clob)");
+    connection.setAutoCommit(true);
 
-    TvShowList.getInstance().loadTvShowsFromDatabase(entityManager);
+    // configure JSON
+    objectMapper = new ObjectMapper();
+    objectMapper.configure(MapperFeature.AUTO_DETECT_GETTERS, false);
+    objectMapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false);
+    objectMapper.configure(MapperFeature.AUTO_DETECT_SETTERS, false);
+    objectMapper.configure(MapperFeature.AUTO_DETECT_FIELDS, false);
+    objectMapper.setSerializationInclusion(Include.NON_NULL);
+    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
+
+    TvShowList.getInstance().loadTvShowsFromDatabase();
     enabled = true;
   }
 
   @Override
   public void shutDown() throws Exception {
-    // EntityManagerFactory entityManagerFactory = entityManager.getEntityManagerFactory();
-    // entityManager.close();
-    // entityManagerFactory.close();
-
+    connection.commit();
+    connection.close();
     enabled = false;
 
     if (Globals.settings.isDeleteTrashOnExit()) {
@@ -108,7 +104,11 @@ public class TvShowModuleManager implements ITmmModule {
     return enabled;
   }
 
-  public EntityManager getEntityManager() {
-    return entityManager;
+  Connection getConnection() {
+    return connection;
+  }
+
+  ObjectMapper getObjectMapper() {
+    return objectMapper;
   }
 }

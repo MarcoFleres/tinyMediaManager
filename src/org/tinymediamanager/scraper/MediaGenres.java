@@ -26,6 +26,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.ui.UTF8Control;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
  * The Class MediaGenres2.
  * 
@@ -103,11 +105,6 @@ public class MediaGenres extends DynaEnum<MediaGenres> {
     this.alternateNames = loadAlternateNames(enumName);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.tinymediamanager.core.DynaEnum#toString()
-   */
   public String toString() {
     return this.getLocalizedName();
   }
@@ -162,6 +159,7 @@ public class MediaGenres extends DynaEnum<MediaGenres> {
    *          the name
    * @return the genre
    */
+  @JsonCreator
   public static MediaGenres getGenre(String name) {
     for (MediaGenres genre : values()) {
       // check if the "enum" name matches

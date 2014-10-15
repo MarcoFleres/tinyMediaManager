@@ -464,13 +464,6 @@ public class TinyMediaManager {
             }
           }
         }
-        catch (javax.persistence.PersistenceException e) {
-          LOGGER.error("PersistenceException", e);
-          if (!GraphicsEnvironment.isHeadless()) {
-            MessageDialog.showExceptionWindow(e);
-            System.exit(1);
-          }
-        }
         catch (Exception e) {
           LOGGER.error("Exception while start of tmm", e);
           if (!GraphicsEnvironment.isHeadless()) {

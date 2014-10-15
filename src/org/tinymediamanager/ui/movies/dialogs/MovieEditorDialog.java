@@ -962,13 +962,13 @@ public class MovieEditorDialog extends TmmDialog {
         movieToEdit.setCertification((Certification) certification);
       }
 
-      if (!StringUtils.isEmpty(lblPoster.getImageUrl()) && !lblPoster.getImageUrl().equals(movieToEdit.getPosterUrl())) {
-        movieToEdit.setPosterUrl(lblPoster.getImageUrl());
+      if (!StringUtils.isEmpty(lblPoster.getImageUrl()) && !lblPoster.getImageUrl().equals(movieToEdit.getArtworkUrl(MediaFileType.POSTER))) {
+        movieToEdit.setArtworkUrl(lblPoster.getImageUrl(), MediaFileType.POSTER);
         movieToEdit.downloadArtwork(MediaFileType.POSTER);
       }
 
-      if (!StringUtils.isEmpty(lblFanart.getImageUrl()) && !lblFanart.getImageUrl().equals(movieToEdit.getFanartUrl())) {
-        movieToEdit.setFanartUrl(lblFanart.getImageUrl());
+      if (!StringUtils.isEmpty(lblFanart.getImageUrl()) && !lblFanart.getImageUrl().equals(movieToEdit.getArtworkUrl(MediaFileType.FANART))) {
+        movieToEdit.setArtworkUrl(lblFanart.getImageUrl(), MediaFileType.FANART);
         movieToEdit.downloadArtwork(MediaFileType.FANART);
       }
 

@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 
-import javax.persistence.Embeddable;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -33,36 +31,29 @@ import org.tinymediamanager.scraper.util.Url;
 import org.tinymediamanager.scraper.util.UrlUtil;
 import org.tinymediamanager.scraper.util.YoutubeLinkExtractor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * The Class Trailer.
  * 
  * @author Manuel Laggner
  */
-@Embeddable
 public class MediaTrailer extends AbstractModelObject implements Comparable<MediaTrailer> {
-
-  /** The Constant LOGGER. */
   private static final Logger LOGGER   = LoggerFactory.getLogger(MediaTrailer.class);
 
-  /** The name. */
+  @JsonProperty
   private String              name     = "";
-
-  /** The url. */
+  @JsonProperty
   private String              url      = "";
-
-  /** The quality. */
+  @JsonProperty
   private String              quality  = "";
-
-  /** The provider. */
+  @JsonProperty
   private String              provider = "";
-
-  /** The inNfo. */
+  @JsonProperty
   private Boolean             inNfo    = Boolean.FALSE;
-
-  /** The size (as string). */
+  @JsonProperty
   private String              size     = "";
-
-  /** The date (as string). */
+  @JsonProperty
   private String              date     = "";
 
   /**

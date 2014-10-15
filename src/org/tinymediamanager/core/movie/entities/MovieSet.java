@@ -27,12 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -51,21 +46,22 @@ import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.scraper.MediaArtwork.MediaArtworkType;
 import org.tinymediamanager.scraper.util.Url;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * The Class MovieSet. This class is used to represent a movie set (which means a "collection" of n movies)
  * 
  * @author Manuel Laggner
  */
-@Entity
 public class MovieSet extends MediaEntity {
   private static final Logger            LOGGER                      = LoggerFactory.getLogger(MovieSet.class);
   private static final Comparator<Movie> MOVIE_SET_COMPARATOR        = new MovieInMovieSetComparator();
   private static final String[]          SUPPORTED_ARTWORK_FILETYPES = { "jpg", "png", "tbn" };
 
-  @OneToMany(fetch = FetchType.EAGER)
-  private List<Movie>                    movies                      = new ArrayList<Movie>(0);
+  @JsonProperty
+  private List<UUID>                     movieIds                    = new ArrayList<UUID>();
 
-  @Transient
+  private List<Movie>                    movies                      = new ArrayList<Movie>(0);
   private String                         titleSortable               = "";
 
   static {
@@ -154,18 +150,6 @@ public class MovieSet extends MediaEntity {
   }
 
   @Override
-  @Deprecated
-  public String getFanart() {
-    return getArtworkFilename(MediaFileType.FANART);
-  }
-
-  @Override
-  @Deprecated
-  public String getPoster() {
-    return getArtworkFilename(MediaFileType.POSTER);
-  }
-
-  @Override
   public String getArtworkFilename(final MediaFileType type) {
     // try to get from the artwork folder if enabled
     if (MovieModuleManager.MOVIE_SETTINGS.isEnableMovieSetArtworkFolder()) {
@@ -239,6 +223,7 @@ public class MovieSet extends MediaEntity {
         return;
       }
       movies.add(movie);
+      movieIds.add(movie.getDbId());
       saveToDb();
     }
 
@@ -265,9 +250,11 @@ public class MovieSet extends MediaEntity {
       int index = Collections.binarySearch(movies, movie, MOVIE_SET_COMPARATOR);
       if (index < 0) {
         movies.add(-index - 1, movie);
+        movieIds.add(-index - 1, movie.getDbId());
       }
       else if (index >= 0) {
         movies.add(index, movie);
+        movieIds.add(index, movie.getDbId());
       }
 
       saveToDb();
@@ -305,6 +292,7 @@ public class MovieSet extends MediaEntity {
 
     synchronized (movies) {
       movies.remove(movie);
+      movieIds.remove(movie.getDbId());
       saveToDb();
     }
 
@@ -322,6 +310,12 @@ public class MovieSet extends MediaEntity {
   public void sortMovies() {
     synchronized (movies) {
       Collections.sort(movies, MOVIE_SET_COMPARATOR);
+
+      // rebuild the ID table the same way
+      movieIds.clear();
+      for (Movie movie : movies) {
+        movieIds.add(movie.getDbId());
+      }
     }
     firePropertyChange("movies", null, movies);
   }
@@ -477,7 +471,7 @@ public class MovieSet extends MediaEntity {
   }
 
   public Boolean getHasImages() {
-    if (!StringUtils.isEmpty(getPoster()) && !StringUtils.isEmpty(getFanart())) {
+    if (!StringUtils.isEmpty(getArtworkFilename(MediaFileType.POSTER)) && !StringUtils.isEmpty(getArtworkFilename(MediaFileType.FANART))) {
       return true;
     }
     return false;
@@ -494,12 +488,14 @@ public class MovieSet extends MediaEntity {
     // get files to cache
     List<File> filesToCache = new ArrayList<File>();
 
-    if (StringUtils.isNotBlank(getPoster())) {
-      filesToCache.add(new File(getPoster()));
+    String poster = getArtworkFilename(MediaFileType.POSTER);
+    if (StringUtils.isNotBlank(poster)) {
+      filesToCache.add(new File(poster));
     }
 
-    if (StringUtils.isNotBlank(getFanart())) {
-      filesToCache.add(new File(getFanart()));
+    String fanart = getArtworkFilename(MediaFileType.FANART);
+    if (StringUtils.isNotBlank(fanart)) {
+      filesToCache.add(new File(fanart));
     }
 
     return filesToCache;
@@ -512,33 +508,34 @@ public class MovieSet extends MediaEntity {
   @Override
   public void saveToDb() {
     // update/insert this movie set to the database
-    final EntityManager entityManager = getEntityManager();
-    readWriteLock.readLock().lock();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.persist(this);
-      }
+    try {
+      MovieList.getInstance().persistMovieSet(this);
     }
-    readWriteLock.readLock().unlock();
+    catch (Exception e) {
+      LOGGER.error("failed to persist movie set: " + getTitle());
+    }
   }
 
   @Override
   public void deleteFromDb() {
-    // delete this movie set from the database
-    final EntityManager entityManager = getEntityManager();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.remove(this);
+    // remove this movie set from the database
+    try {
+      MovieList.getInstance().removeMovieSetFromDb(this);
+    }
+    catch (Exception e) {
+      LOGGER.error("failed to remove movie set: " + getTitle());
+    }
+  }
+
+  @Override
+  public void initializeAfterLoading() {
+    super.initializeAfterLoading();
+
+    // link with movies
+    for (UUID uuid : movieIds) {
+      Movie movie = MovieList.getInstance().lookupMovie(uuid);
+      if (movie != null) {
+        movies.add(movie);
       }
     }
   }
@@ -571,11 +568,6 @@ public class MovieSet extends MediaEntity {
     if (dirty) {
       saveToDb();
     }
-  }
-
-  @Override
-  protected EntityManager getEntityManager() {
-    return MovieModuleManager.getInstance().getEntityManager();
   }
 
   /*******************************************************************************

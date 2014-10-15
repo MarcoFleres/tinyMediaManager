@@ -17,25 +17,22 @@ package org.tinymediamanager.core.movie;
 
 import static org.tinymediamanager.core.Constants.*;
 
-import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.observablecollections.ObservableCollections;
@@ -68,11 +65,13 @@ import org.tinymediamanager.scraper.moviemeternl.MoviemeterMetadataProvider;
 import org.tinymediamanager.scraper.ofdb.OfdbMetadataProvider;
 import org.tinymediamanager.scraper.tmdb.TmdbMetadataProvider;
 import org.tinymediamanager.scraper.zelluloid.ZelluloidMetadataProvider;
-import org.tinymediamanager.ui.UTF8Control;
 
 import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.ObservableElementList;
+
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * The Class MovieList.
@@ -81,11 +80,18 @@ import ca.odell.glazedlists.ObservableElementList;
  */
 public class MovieList extends AbstractModelObject {
   private static final Logger          LOGGER                   = LoggerFactory.getLogger(MovieList.class);
-  private static final ResourceBundle  BUNDLE                   = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
   private static MovieList             instance;
+
+  private ObjectWriter                 movieObjectWriter;
+  private PreparedStatement            preparedStatementMovieSave;
+  private PreparedStatement            preparedStatementMovieDelete;
+  private ObjectWriter                 movieSetObjectWriter;
+  private PreparedStatement            preparedStatementMovieSetSave;
+  private PreparedStatement            preparedStatementMovieSetDelete;
 
   private ObservableElementList<Movie> movieList;
   private List<MovieSet>               movieSetList;
+
   private PropertyChangeListener       tagListener;
   private List<String>                 tagsObservable           = ObservableCollections.observableList(Collections
                                                                     .synchronizedList(new ArrayList<String>()));
@@ -101,6 +107,20 @@ public class MovieList extends AbstractModelObject {
    * Instantiates a new movie list.
    */
   private MovieList() {
+    try {
+      preparedStatementMovieSave = MovieModuleManager.getInstance().getConnection().prepareStatement("merge into movie values(?,?)");
+      preparedStatementMovieDelete = MovieModuleManager.getInstance().getConnection().prepareStatement("delete movie where id = ?");
+      preparedStatementMovieSetSave = MovieModuleManager.getInstance().getConnection().prepareStatement("merge into movieset values(?,?)");
+      preparedStatementMovieSetDelete = MovieModuleManager.getInstance().getConnection().prepareStatement("delete movieset where id = ?");
+    }
+    catch (Exception e) {
+      LOGGER.error("failed creating prepared SQL statements: " + e.getMessage());
+    }
+
+    // create writer
+    movieObjectWriter = MovieModuleManager.getInstance().getObjectMapper().writerWithType(Movie.class);
+    movieSetObjectWriter = MovieModuleManager.getInstance().getObjectMapper().writerWithType(MovieSet.class);
+
     // the tag listener: its used to always have a full list of all tags used in tmm
     tagListener = new PropertyChangeListener() {
       @Override
@@ -217,12 +237,6 @@ public class MovieList extends AbstractModelObject {
     Set<MovieSet> modifiedMovieSets = new HashSet<MovieSet>();
     int oldValue = movieList.size();
 
-    boolean newTransaction = false;
-    if (!MovieModuleManager.getInstance().getEntityManager().getTransaction().isActive()) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().begin();
-      newTransaction = true;
-    }
-
     // remove in inverse order => performance
     for (int i = movies.size() - 1; i >= 0; i--) {
       Movie movie = movies.get(i);
@@ -230,20 +244,16 @@ public class MovieList extends AbstractModelObject {
       if (movie.getMovieSet() != null) {
         MovieSet movieSet = movie.getMovieSet();
 
-        // bring the MS back to the context - hotfix
-        if (!MovieModuleManager.getInstance().getEntityManager().contains(movieSet)) {
-          MovieModuleManager.getInstance().getEntityManager().merge(movieSet);
-        }
-
         movieSet.removeMovie(movie);
         modifiedMovieSets.add(movieSet);
         movie.setMovieSet(null);
       }
-      MovieModuleManager.getInstance().getEntityManager().remove(movie);
-    }
-
-    if (newTransaction) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().commit();
+      try {
+        removeMovieFromDb(movie);
+      }
+      catch (Exception e) {
+        LOGGER.error("problem removing movie from DB: " + e.getMessage());
+      }
     }
 
     // and now check if any of the modified moviesets are worth for deleting
@@ -269,13 +279,6 @@ public class MovieList extends AbstractModelObject {
     }
     Set<MovieSet> modifiedMovieSets = new HashSet<MovieSet>();
     int oldValue = movieList.size();
-
-    boolean newTransaction = false;
-    if (!MovieModuleManager.getInstance().getEntityManager().getTransaction().isActive()) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().begin();
-      newTransaction = true;
-    }
-
     // remove in inverse order => performance
     for (int i = movies.size() - 1; i >= 0; i--) {
       Movie movie = movies.get(i);
@@ -287,11 +290,12 @@ public class MovieList extends AbstractModelObject {
         modifiedMovieSets.add(movieSet);
         movie.setMovieSet(null);
       }
-      MovieModuleManager.getInstance().getEntityManager().remove(movie);
-    }
-
-    if (newTransaction) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().commit();
+      try {
+        removeMovieFromDb(movie);
+      }
+      catch (Exception e) {
+        LOGGER.error("problem removing movie from DB: " + e.getMessage());
+      }
     }
 
     // and now check if any of the modified moviesets are worth for deleting
@@ -318,85 +322,86 @@ public class MovieList extends AbstractModelObject {
   /**
    * Load movies from database.
    */
-  public void loadMoviesFromDatabase(EntityManager entityManager) {
-    List<Movie> movies = null;
-    List<MovieSet> movieSets = null;
+  public void loadMoviesFromDatabase(Connection connection) {
+    // 1. load all movies
+    ObjectReader movieObjectReader = MovieModuleManager.getInstance().getObjectMapper().reader(Movie.class);
+    movieList = new ObservableElementList<Movie>(GlazedLists.threadSafeList(new BasicEventList<Movie>()), GlazedLists.beanConnector(Movie.class));
     try {
-      // load movies
-      TypedQuery<Movie> query = entityManager.createQuery("SELECT movie FROM Movie movie", Movie.class);
-      movies = query.getResultList();
-      if (movies != null) {
-        LOGGER.info("found " + movies.size() + " movies in database");
-        movieList = new ObservableElementList<Movie>(GlazedLists.threadSafeList(new BasicEventList<Movie>(movies.size())),
-            GlazedLists.beanConnector(Movie.class));
-
-        for (Object obj : movies) {
-          if (obj instanceof Movie) {
-            Movie movie = (Movie) obj;
-            try {
-              // movie.setObservables();
-              movie.initializeAfterLoading();
-
-              // for performance reasons we add movies directly
-              // addMovie(movie);
-              movieList.add(movie);
-              updateTags(movie);
-              updateMediaInformationLists(movie);
-              updateCertifications(movie);
-              movie.addPropertyChangeListener(tagListener);
-            }
-            catch (Exception e) {
-              LOGGER.error("error loading movie/dropping it: " + e.getMessage());
-              try {
-                List<Movie> moviesToRemove = Arrays.asList(movie);
-                removeMovies(moviesToRemove);
-              }
-              catch (Exception e1) {
-              }
-            }
-          }
-          else {
-            LOGGER.error("retrieved no movie: " + obj);
-          }
+      Statement select = MovieModuleManager.getInstance().getConnection().createStatement();
+      ResultSet result = select.executeQuery("SELECT * FROM movie");
+      while (result.next()) { // process results one row at a time
+        UUID uuid = UUID.fromString(result.getString(1));
+        String json = result.getString(2);
+        try {
+          Movie movie = movieObjectReader.readValue(json);
+          movie.setDbId(uuid);
+          movieList.add(movie);
         }
-
-      }
-      else {
-        LOGGER.debug("found no movies in database");
-      }
-
-      // load movie sets
-      TypedQuery<MovieSet> querySets = entityManager.createQuery("SELECT movieSet FROM MovieSet movieSet", MovieSet.class);
-      movieSets = querySets.getResultList();
-      if (movieSets != null) {
-        LOGGER.info("found " + movieSets.size() + " movieSets in database");
-        movieSetList = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<MovieSet>(movieSets.size())));
-
-        // load movie sets
-        for (Object obj : movieSets) {
-          if (obj instanceof MovieSet) {
-            MovieSet movieSet = (MovieSet) obj;
-
-            // for performance reasons we add moviesets directly
-            // addMovieSet(movieSet);
-            this.movieSetList.add(movieSet);
-          }
+        catch (Exception e) {
+          LOGGER.warn("problem decoding movie json string: ", e);
         }
       }
-      else {
-        LOGGER.debug("found no movieSets in database");
-      }
-
-      // remove invalid movies which have no VIDEO files
-      checkAndCleanupMediaFiles();
-
-      // cross check movies and moviesets if linking is "stable"
-      checkAndCleanupMovieSets();
+      LOGGER.info("found " + movieList.size() + " movies in database");
     }
     catch (Exception e) {
-      LOGGER.error("loadMoviesFromDatabase", e);
-      MessageManager.instance.pushMessage(new Message(MessageLevel.ERROR, "", "message.database.loadmovies"));
+      LOGGER.error("failed retrieving movies: " + e.getMessage());
     }
+
+    // 2. load all movie sets
+    ObjectReader movieSetObjectReader = MovieModuleManager.getInstance().getObjectMapper().reader(MovieSet.class);
+    movieSetList = ObservableCollections.observableList(Collections.synchronizedList(new ArrayList<MovieSet>()));
+    try {
+      Statement select = MovieModuleManager.getInstance().getConnection().createStatement();
+      ResultSet result = select.executeQuery("SELECT * FROM movieset");
+      while (result.next()) { // process results one row at a time
+        UUID uuid = UUID.fromString(result.getString(1));
+        String json = result.getString(2);
+
+        try {
+          MovieSet movieSet = movieSetObjectReader.readValue(json);
+          movieSet.setDbId(uuid);
+          movieSetList.add(movieSet);
+        }
+        catch (Exception e) {
+          LOGGER.warn("problem decoding movie set json string: ", e);
+        }
+      }
+      LOGGER.info("found " + movieSetList.size() + " movie sets in database");
+    }
+    catch (Exception e) {
+      LOGGER.error("failed retrieving movie sets: " + e.getMessage());
+    }
+
+    // 3. initialize movies/movie sets (e.g. link with each others)
+    for (Movie movie : movieList) {
+      movie.initializeAfterLoading();
+      updateTags(movie);
+      updateMediaInformationLists(movie);
+      updateCertifications(movie);
+      movie.addPropertyChangeListener(tagListener);
+    }
+
+    for (MovieSet movieSet : movieSetList) {
+      movieSet.initializeAfterLoading();
+    }
+  }
+
+  public MovieSet lookupMovieSet(UUID uuid) {
+    for (MovieSet movieSet : movieSetList) {
+      if (movieSet.getDbId().equals(uuid)) {
+        return movieSet;
+      }
+    }
+    return null;
+  }
+
+  public Movie lookupMovie(UUID uuid) {
+    for (Movie movie : movieList) {
+      if (movie.getDbId().equals(uuid)) {
+        return movie;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1105,17 +1110,11 @@ public class MovieList extends AbstractModelObject {
     movieSet.removeAllMovies();
 
     movieSetList.remove(movieSet);
-
-    boolean newTransaction = false;
-    if (!MovieModuleManager.getInstance().getEntityManager().getTransaction().isActive()) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().begin();
-      newTransaction = true;
+    try {
+      removeMovieSetFromDb(movieSet);
     }
-
-    MovieModuleManager.getInstance().getEntityManager().remove(movieSet);
-
-    if (newTransaction) {
-      MovieModuleManager.getInstance().getEntityManager().getTransaction().commit();
+    catch (Exception e) {
+      LOGGER.error("problem removing movie set from DB: " + e.getMessage());
     }
 
     firePropertyChange("removedMovieSet", null, movieSet);
@@ -1176,61 +1175,43 @@ public class MovieList extends AbstractModelObject {
     }
   }
 
-  /**
-   * cross check the linking between movies and moviesets and clean it
-   */
-  private void checkAndCleanupMovieSets() {
-    for (Movie movie : movieList) {
-      // first check if this movie is in the given movieset
-      if (movie.getMovieSet() != null && !movie.getMovieSet().getMovies().contains(movie)) {
-        // add it
-        movie.getMovieSet().addMovie(movie);
-        movie.getMovieSet().saveToDb();
-      }
-      // and check if this movie is in other moviesets
-      for (MovieSet movieSet : movieSetList) {
-        if (movieSet != movie.getMovieSet() && movieSet.getMovies().contains(movie)) {
-          movieSet.removeMovie(movie);
-          movieSet.saveToDb();
-        }
-      }
-    }
+  public void persistMovie(Movie movie) throws Exception {
+    String json = movieObjectWriter.writeValueAsString(movie);
 
-    // second: check if there are some orphaned movies in moviesets
-    for (MovieSet movieSet : movieSetList) {
-      movieSet.cleanMovieSet();
+    synchronized (preparedStatementMovieSave) {
+      preparedStatementMovieSave.setString(1, movie.getDbId().toString());
+      preparedStatementMovieSave.setString(2, json);
+      preparedStatementMovieSave.executeUpdate();
     }
   }
 
-  /**
-   * check if there are movies without (at least) one VIDEO mf
-   */
-  private void checkAndCleanupMediaFiles() {
-    List<Movie> moviesToRemove = new ArrayList<Movie>();
-    for (Movie movie : movieList) {
-      List<MediaFile> mfs = movie.getMediaFiles(MediaFileType.VIDEO);
-      if (mfs.isEmpty()) {
-        // mark movie for removal
-        moviesToRemove.add(movie);
-      }
-    }
-
-    if (!moviesToRemove.isEmpty()) {
-      removeMovies(moviesToRemove);
-      LOGGER.warn("movies without VIDEOs detected");
-
-      // since we have no active UI yet, push a popup message in an own window
-      if (!GraphicsEnvironment.isHeadless()) {
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            JOptionPane.showMessageDialog(null, BUNDLE.getString("message.database.corrupteddata"));
-          }
-        });
-      }
+  public void removeMovieFromDb(Movie movie) throws Exception {
+    synchronized (preparedStatementMovieDelete) {
+      preparedStatementMovieDelete.setString(1, movie.getDbId().toString());
+      preparedStatementMovieDelete.executeUpdate();
     }
   }
 
+  public void persistMovieSet(MovieSet movieSet) throws Exception {
+    String json = movieSetObjectWriter.writeValueAsString(movieSet);
+
+    synchronized (preparedStatementMovieSetSave) {
+      preparedStatementMovieSetSave.setString(1, movieSet.getDbId().toString());
+      preparedStatementMovieSetSave.setString(2, json);
+      preparedStatementMovieSetSave.executeUpdate();
+    }
+  }
+
+  public void removeMovieSetFromDb(MovieSet movieSet) throws Exception {
+    synchronized (preparedStatementMovieSetDelete) {
+      preparedStatementMovieSetDelete.setString(1, movieSet.getDbId().toString());
+      preparedStatementMovieSetDelete.executeUpdate();
+    }
+  }
+
+  /*
+   * helper classes
+   */
   private class MovieSetComparator implements Comparator<MovieSet> {
     @Override
     public int compare(MovieSet o1, MovieSet o2) {
@@ -1239,6 +1220,5 @@ public class MovieList extends AbstractModelObject {
       }
       return o1.getTitleSortable().compareToIgnoreCase(o2.getTitleSortable());
     }
-
   }
 }

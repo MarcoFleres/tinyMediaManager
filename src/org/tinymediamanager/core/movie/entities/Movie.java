@@ -28,19 +28,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Inheritance;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -81,6 +71,8 @@ import org.tinymediamanager.scraper.MediaTrailer;
 import org.tinymediamanager.scraper.tmdb.TmdbMetadataProvider;
 import org.tinymediamanager.scraper.util.UrlUtil;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.omertron.themoviedbapi.model.CollectionInfo;
 
 /**
@@ -88,56 +80,69 @@ import com.omertron.themoviedbapi.model.CollectionInfo;
  * 
  * @author Manuel Laggner / Myron Boyle
  */
-@Entity
-@Inheritance(strategy = javax.persistence.InheritanceType.JOINED)
 public class Movie extends MediaEntity {
-  @XmlTransient
   private static final Logger       LOGGER          = LoggerFactory.getLogger(Movie.class);
+  private static final Date         INITIAL_DATE    = new Date(0);
 
   private static MovieArtworkHelper artworkHelper   = new MovieArtworkHelper();
 
+  @JsonProperty
   private String                    sortTitle       = "";
+  @JsonProperty
   private String                    tagline         = "";
+  @JsonProperty
   private int                       votes           = 0;
+  @JsonProperty
   private int                       runtime         = 0;
+  @JsonProperty
   private String                    director        = "";
+  @JsonProperty
   private String                    writer          = "";
+  @JsonProperty
   private String                    dataSource      = "";
+  @JsonProperty
   private boolean                   watched         = false;
-  private MovieSet                  movieSet;
+  @JsonProperty
   private boolean                   isDisc          = false;
+  @JsonProperty
   private String                    spokenLanguages = "";
+  @JsonProperty
   private boolean                   subtitles       = false;
+  @JsonProperty
   private String                    country         = "";
-  private Date                      releaseDate     = null;
+  @JsonProperty
+  private Date                      releaseDate     = INITIAL_DATE;
+  @JsonProperty
   private boolean                   multiMovieDir   = false;                               // we detected more movies in same folder
+  @JsonProperty
   private int                       top250          = 0;
+  @JsonProperty
   private MovieMediaSource          mediaSource     = MovieMediaSource.UNKNOWN;            // DVD, Bluray, etc
-
-  private List<String>              genres          = new ArrayList<String>(1);
-  private List<String>              tags            = new ArrayList<String>(0);
-  private List<String>              extraThumbs     = new ArrayList<String>(0);
-  private List<String>              extraFanarts    = new ArrayList<String>(0);
-
-  @Enumerated(EnumType.STRING)
+  @JsonProperty
   private Certification             certification   = Certification.NOT_RATED;
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonProperty
+  private List<String>              genres          = new ArrayList<String>(1);
+  @JsonProperty
+  private List<String>              tags            = new ArrayList<String>(0);
+  @JsonProperty
+  private List<String>              extraThumbs     = new ArrayList<String>(0);
+  @JsonProperty
+  private List<String>              extraFanarts    = new ArrayList<String>(0);
+
+  @JsonProperty
   private List<MovieActor>          actors          = new ArrayList<MovieActor>();
-
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonProperty
   private List<MovieProducer>       producers       = new ArrayList<MovieProducer>(0);
-
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonProperty
   private List<MediaTrailer>        trailer         = new ArrayList<MediaTrailer>(0);
 
-  @Transient
+  @JsonProperty
+  private UUID                      movieSetId;
+
+  private MovieSet                  movieSet;
   private String                    titleSortable   = "";
-
-  @Transient
   private boolean                   newlyAdded      = false;
-
-  @Transient
   private List<MediaGenres>         genresForAccess = new ArrayList<MediaGenres>(0);
 
   static {
@@ -168,30 +173,16 @@ public class Movie extends MediaEntity {
     return scraped;
   }
 
-  /**
-   * Gets the sort title.
-   * 
-   * @return the sort title
-   */
   public String getSortTitle() {
     return sortTitle;
   }
 
-  /**
-   * Sets the sort title.
-   * 
-   * @param newValue
-   *          the new sort title
-   */
   public void setSortTitle(String newValue) {
     String oldValue = this.sortTitle;
     this.sortTitle = newValue;
     firePropertyChange(SORT_TITLE, oldValue, newValue);
   }
 
-  /**
-   * Sets the sort title from movie set.
-   */
   public void setSortTitleFromMovieSet() {
     if (movieSet != null) {
       int index = movieSet.getMovieIndex(this) + 1;
@@ -216,11 +207,6 @@ public class Movie extends MediaEntity {
     titleSortable = "";
   }
 
-  /**
-   * Gets the checks for nfo file.
-   * 
-   * @return the checks for nfo file
-   */
   public Boolean getHasNfoFile() {
     List<MediaFile> mf = getMediaFiles(MediaFileType.NFO);
     if (mf != null && mf.size() > 0) {
@@ -230,23 +216,13 @@ public class Movie extends MediaEntity {
     return false;
   }
 
-  /**
-   * Gets the checks for images.
-   * 
-   * @return the checks for images
-   */
   public Boolean getHasImages() {
-    if (!StringUtils.isEmpty(getPoster()) && !StringUtils.isEmpty(getFanart())) {
+    if (!StringUtils.isEmpty(getArtworkFilename(MediaFileType.POSTER)) && !StringUtils.isEmpty(getArtworkFilename(MediaFileType.FANART))) {
       return true;
     }
     return false;
   }
 
-  /**
-   * Gets the checks for trailer.
-   * 
-   * @return the checks for trailer
-   */
   public Boolean getHasTrailer() {
     if (trailer != null && trailer.size() > 0) {
       return true;
@@ -260,11 +236,6 @@ public class Movie extends MediaEntity {
     return false;
   }
 
-  /**
-   * Gets the title for ui.
-   * 
-   * @return the title for ui
-   */
   public String getTitleForUi() {
     StringBuffer titleForUi = new StringBuffer(title);
     if (year != null && !year.isEmpty()) {
@@ -275,9 +246,7 @@ public class Movie extends MediaEntity {
     return titleForUi.toString();
   }
 
-  /**
-   * Initialize after loading.
-   */
+  @Override
   public void initializeAfterLoading() {
     super.initializeAfterLoading();
 
@@ -289,56 +258,29 @@ public class Movie extends MediaEntity {
     for (String genre : new ArrayList<String>(genres)) {
       addGenre(MediaGenres.getGenre(genre));
     }
+
+    // link with movie set
+    if (movieSetId != null) {
+      movieSet = MovieList.getInstance().lookupMovieSet(movieSetId);
+    }
   }
 
-  /**
-   * Adds the actor.
-   * 
-   * @param obj
-   *          the obj
-   */
   public void addActor(MovieActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.add(obj);
-    }
+    actors.add(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
-  /**
-   * Gets the trailers.
-   * 
-   * @return the trailers
-   */
   public List<MediaTrailer> getTrailers() {
     return this.trailer;
   }
 
-  /**
-   * Adds the trailer.
-   * 
-   * @param obj
-   *          the obj
-   */
   public void addTrailer(MediaTrailer obj) {
-    // trailers are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      trailer.add(obj);
-    }
+    trailer.add(obj);
     firePropertyChange(TRAILER, null, trailer);
   }
 
-  /**
-   * Removes the all trailers.
-   */
   public void removeAllTrailers() {
-    // trailers are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      trailer.clear();
-    }
+    trailer.clear();
     firePropertyChange(TRAILER, null, trailer);
   }
 
@@ -362,11 +304,10 @@ public class Movie extends MediaEntity {
       // download to temp first
       trailerToDownload.downloadTo(tfile + ext + ".tmp");
       LOGGER.info("Trailer download successfully");
-      // TODO: maybe check if there are other trailerfiles (with other
-      // extension) and remove
+      // TODO: maybe check if there are other trailerfiles (with other extension) and remove
       File trailer = new File(tfile + ext);
       FileUtils.deleteQuietly(trailer);
-      boolean ok = Utils.moveFileSafe(new File(tfile + ext + ".tmp"), trailer);
+      Utils.moveFileSafe(new File(tfile + ext + ".tmp"), trailer);
     }
     catch (IOException e) {
       LOGGER.error("Error downloading trailer", e);
@@ -382,12 +323,6 @@ public class Movie extends MediaEntity {
     return true;
   }
 
-  /**
-   * Adds the to tags.
-   * 
-   * @param newTag
-   *          the new tag
-   */
   public void addToTags(String newTag) {
     if (StringUtils.isBlank(newTag)) {
       return;
@@ -404,24 +339,13 @@ public class Movie extends MediaEntity {
     firePropertyChange(TAGS_AS_STRING, null, newTag);
   }
 
-  /**
-   * Removes the from tags.
-   * 
-   * @param removeTag
-   *          the remove tag
-   */
   public void removeFromTags(String removeTag) {
     tags.remove(removeTag);
     firePropertyChange(TAG, null, tags);
     firePropertyChange(TAGS_AS_STRING, null, removeTag);
   }
 
-  /**
-   * Sets the tags.
-   * 
-   * @param newTags
-   *          the new tags
-   */
+  /** Set the tags. */
   public void setTags(List<String> newTags) {
     // two way sync of tags
 
@@ -446,11 +370,7 @@ public class Movie extends MediaEntity {
     firePropertyChange(TAGS_AS_STRING, null, tags);
   }
 
-  /**
-   * Gets the tag as string.
-   * 
-   * @return the tag as string
-   */
+  /** Gets the tags as string. */
   public String getTagsAsString() {
     StringBuilder sb = new StringBuilder();
     for (String tag : tags) {
@@ -462,30 +382,14 @@ public class Movie extends MediaEntity {
     return sb.toString();
   }
 
-  /**
-   * Gets the tags.
-   * 
-   * @return the tags
-   */
   public List<String> getTags() {
     return this.tags;
   }
 
-  /**
-   * Gets the data source.
-   * 
-   * @return the data source
-   */
   public String getDataSource() {
     return dataSource;
   }
 
-  /**
-   * Sets the data source.
-   * 
-   * @param newValue
-   *          the new data source
-   */
   public void setDataSource(String newValue) {
     String oldValue = this.dataSource;
     this.dataSource = newValue;
@@ -512,9 +416,6 @@ public class Movie extends MediaEntity {
     this.subtitles = sub;
   }
 
-  /**
-   * Find actor images.
-   */
   public void findActorImages() {
     if (MovieModuleManager.MOVIE_SETTINGS.isWriteActorImages()) {
       String actorsDirPath = getPath() + File.separator + MovieActor.ACTOR_DIR;
@@ -541,29 +442,14 @@ public class Movie extends MediaEntity {
     }
   }
 
-  /**
-   * Gets the actors.
-   * 
-   * @return the actors
-   */
   public List<MovieActor> getActors() {
     return this.actors;
   }
 
-  /**
-   * Gets the director.
-   * 
-   * @return the director
-   */
   public String getDirector() {
     return director;
   }
 
-  /**
-   * Gets the imdb id.
-   * 
-   * @return the imdb id
-   */
   public String getImdbId() {
     Object obj = ids.get(IMDBID);
     if (obj == null || !Utils.isValidImdbId(obj.toString())) {
@@ -572,11 +458,6 @@ public class Movie extends MediaEntity {
     return obj.toString();
   }
 
-  /**
-   * Gets the tmdb id.
-   * 
-   * @return the tmdb id
-   */
   public int getTmdbId() {
     int id = 0;
     try {
@@ -588,33 +469,16 @@ public class Movie extends MediaEntity {
     return id;
   }
 
-  /**
-   * Sets the tmdb id.
-   * 
-   * @param newValue
-   *          the new tmdb id
-   */
   public void setTmdbId(int newValue) {
     int oldValue = getTmdbId();
     ids.put(TMDBID, newValue);
     firePropertyChange(TMDBID, oldValue, newValue);
   }
 
-  /**
-   * Gets the votes.
-   * 
-   * @return the votes
-   */
   public int getVotes() {
     return votes;
   }
 
-  /**
-   * Sets the votes.
-   * 
-   * @param newValue
-   *          the new votes
-   */
   public void setVotes(int newValue) {
     int oldValue = this.votes;
     this.votes = newValue;
@@ -634,31 +498,14 @@ public class Movie extends MediaEntity {
     return runtime == 0 ? runtimeFromMi : runtime;
   }
 
-  /**
-   * Gets the tagline.
-   * 
-   * @return the tagline
-   */
   public String getTagline() {
     return tagline;
   }
 
-  /**
-   * Gets the writer.
-   * 
-   * @return the writer
-   */
   public String getWriter() {
     return writer;
   }
 
-  /**
-   * Checks for file.
-   * 
-   * @param filename
-   *          the filename
-   * @return true, if successful
-   */
   public boolean hasFile(String filename) {
     if (StringUtils.isEmpty(filename)) {
       return false;
@@ -673,65 +520,27 @@ public class Movie extends MediaEntity {
     return false;
   }
 
-  /**
-   * Removes the actor.
-   * 
-   * @param obj
-   *          the obj
-   */
   public void removeActor(MovieActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.remove(obj);
-    }
+    actors.remove(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
-  /**
-   * Gets the extra thumbs.
-   * 
-   * @return the extra thumbs
-   */
   public List<String> getExtraThumbs() {
     return extraThumbs;
   }
 
-  /**
-   * Sets the extra thumbs.
-   * 
-   * @param extraThumbs
-   *          the new extra thumbs
-   */
   public void setExtraThumbs(List<String> extraThumbs) {
     this.extraThumbs = extraThumbs;
   }
 
-  /**
-   * Gets the extra fanarts.
-   * 
-   * @return the extra fanarts
-   */
   public List<String> getExtraFanarts() {
     return extraFanarts;
   }
 
-  /**
-   * Sets the extra fanarts.
-   * 
-   * @param extraFanarts
-   *          the new extra fanarts
-   */
   public void setExtraFanarts(List<String> extraFanarts) {
     this.extraFanarts = extraFanarts;
   }
 
-  /**
-   * Sets the imdb id.
-   * 
-   * @param newValue
-   *          the new imdb id
-   */
   public void setImdbId(String newValue) {
     if (!Utils.isValidImdbId(newValue)) {
       newValue = "";
@@ -741,17 +550,6 @@ public class Movie extends MediaEntity {
     firePropertyChange(IMDBID, oldValue, newValue);
   }
 
-  /**
-   * Sets the metadata.
-   * 
-   * @param metadata
-   *          the new metadata
-   * @param config
-   *          the config
-   */
-  /**
-   * @param metadata
-   */
   public void setMetadata(MediaMetadata metadata, MovieScraperMetadataConfig config) {
     if (metadata == null) {
       LOGGER.error("metadata was null");
@@ -922,12 +720,6 @@ public class Movie extends MediaEntity {
 
   }
 
-  /**
-   * Sets the trailers; first one is "inNFO" if not a local one.
-   * 
-   * @param trailers
-   *          the new trailers
-   */
   public void setTrailers(List<MediaTrailer> trailers) {
     MediaTrailer preferredTrailer = null;
     removeAllTrailers();
@@ -980,11 +772,6 @@ public class Movie extends MediaEntity {
     saveToDb();
   }
 
-  /**
-   * Gets the metadata.
-   * 
-   * @return the metadata
-   */
   public MediaMetadata getMetadata() {
     MediaMetadata md = new MediaMetadata("");
 
@@ -1005,26 +792,10 @@ public class Movie extends MediaEntity {
     return md;
   }
 
-  /**
-   * Sets the artwork.
-   * 
-   * @param md
-   *          the md
-   * @param config
-   *          the config
-   */
   public void setArtwork(MediaMetadata md, MovieScraperMetadataConfig config) {
     setArtwork(md.getMediaArt(MediaArtworkType.ALL), config);
   }
 
-  /**
-   * Sets the artwork.
-   * 
-   * @param artwork
-   *          the artwork
-   * @param config
-   *          the config
-   */
   public void setArtwork(List<MediaArtwork> artwork, MovieScraperMetadataConfig config) {
     if (config.isArtwork()) {
       // poster
@@ -1032,7 +803,7 @@ public class Movie extends MediaEntity {
       for (MediaArtwork art : artwork) {
         // only get artwork in desired resolution
         if (art.getType() == MediaArtworkType.POSTER && art.getSizeOrder() == MovieModuleManager.MOVIE_SETTINGS.getImagePosterSize().getOrder()) {
-          setPosterUrl(art.getDefaultUrl());
+          setArtworkUrl(art.getDefaultUrl(), MediaFileType.POSTER);
 
           LOGGER.debug(art.getSmallestArtwork().toString());
           LOGGER.debug(art.getBiggestArtwork().toString());
@@ -1049,7 +820,7 @@ public class Movie extends MediaEntity {
       if (!posterFound) {
         for (MediaArtwork art : artwork) {
           if (art.getType() == MediaArtworkType.POSTER) {
-            setPosterUrl(art.getDefaultUrl());
+            setArtworkUrl(art.getDefaultUrl(), MediaFileType.POSTER);
 
             LOGGER.debug(art.getSmallestArtwork().toString());
             LOGGER.debug(art.getBiggestArtwork().toString());
@@ -1070,7 +841,7 @@ public class Movie extends MediaEntity {
       for (MediaArtwork art : artwork) {
         // only get artwork in desired resolution
         if (art.getType() == MediaArtworkType.BACKGROUND && art.getSizeOrder() == MovieModuleManager.MOVIE_SETTINGS.getImageFanartSize().getOrder()) {
-          setFanartUrl(art.getDefaultUrl());
+          setArtworkUrl(art.getDefaultUrl(), MediaFileType.FANART);
 
           LOGGER.debug(art.getSmallestArtwork().toString());
           LOGGER.debug(art.getBiggestArtwork().toString());
@@ -1089,7 +860,7 @@ public class Movie extends MediaEntity {
         for (MediaArtwork art : artwork) {
           // only get artwork in desired resolution
           if (art.getType() == MediaArtworkType.BACKGROUND) {
-            setFanartUrl(art.getDefaultUrl());
+            setArtworkUrl(art.getDefaultUrl(), MediaFileType.FANART);
 
             LOGGER.debug(art.getSmallestArtwork().toString());
             LOGGER.debug(art.getBiggestArtwork().toString());
@@ -1204,38 +975,27 @@ public class Movie extends MediaEntity {
     }
   }
 
-  /**
-   * Sets the actors.
-   * 
-   * @param newActors
-   *          the new actors
-   */
   public void setActors(List<MovieActor> newActors) {
     // two way sync of actors
-
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      // first remove unused
-      for (int i = actors.size() - 1; i >= 0; i--) {
-        MovieActor actor = actors.get(i);
-        if (!newActors.contains(actor)) {
-          actors.remove(actor);
-        }
+    // first remove unused
+    for (int i = actors.size() - 1; i >= 0; i--) {
+      MovieActor actor = actors.get(i);
+      if (!newActors.contains(actor)) {
+        actors.remove(actor);
       }
+    }
 
-      // second add the new ones
-      for (int i = 0; i < newActors.size(); i++) {
-        MovieActor actor = newActors.get(i);
-        if (!actors.contains(actor)) {
-          actors.add(i, actor);
-        }
-        else {
-          int indexOldList = actors.indexOf(actor);
-          if (i != indexOldList) {
-            MovieActor oldActor = actors.remove(indexOldList);
-            actors.add(i, oldActor);
-          }
+    // second add the new ones
+    for (int i = 0; i < newActors.size(); i++) {
+      MovieActor actor = newActors.get(i);
+      if (!actors.contains(actor)) {
+        actors.add(i, actor);
+      }
+      else {
+        int indexOldList = actors.indexOf(actor);
+        if (i != indexOldList) {
+          MovieActor oldActor = actors.remove(indexOldList);
+          actors.add(i, oldActor);
         }
       }
     }
@@ -1264,11 +1024,6 @@ public class Movie extends MediaEntity {
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.tinymediamanager.core.MediaEntity#setTitle(java.lang.String)
-   */
   @Override
   public void setTitle(String newValue) {
     String oldValue = this.title;
@@ -1281,36 +1036,18 @@ public class Movie extends MediaEntity {
     firePropertyChange(TITLE_SORTABLE, oldValue, titleSortable);
   }
 
-  /**
-   * Sets the runtime in minutes
-   * 
-   * @param newValue
-   *          the new runtime
-   */
   public void setRuntime(int newValue) {
     int oldValue = this.runtime;
     this.runtime = newValue;
     firePropertyChange(RUNTIME, oldValue, newValue);
   }
 
-  /**
-   * Sets the tagline.
-   * 
-   * @param newValue
-   *          the new tagline
-   */
   public void setTagline(String newValue) {
     String oldValue = this.tagline;
     this.tagline = newValue;
     firePropertyChange("tagline", oldValue, newValue);
   }
 
-  /**
-   * Sets the year.
-   * 
-   * @param newValue
-   *          the new year
-   */
   @Override
   public void setYear(String newValue) {
     String oldValue = year;
@@ -1402,9 +1139,6 @@ public class Movie extends MediaEntity {
     artworkHelper.downloadArtwork(this, type);
   }
 
-  /**
-   * Write actor images.
-   */
   public void writeActorImages() {
     // check if actor images shall be written
     if (!MovieModuleManager.MOVIE_SETTINGS.isWriteActorImages() || isMultiMovieDir()) {
@@ -1415,9 +1149,6 @@ public class Movie extends MediaEntity {
     TmmTaskManager.getInstance().addImageDownloadTask(task);
   }
 
-  /**
-   * Write nfo.
-   */
   public void writeNFO() {
     if (MovieModuleManager.MOVIE_SETTINGS.getMovieConnector() == MovieConnectors.MP) {
       MovieToMpNfoConnector.setData(this);
@@ -1428,45 +1159,22 @@ public class Movie extends MediaEntity {
     firePropertyChange(HAS_NFO_FILE, false, true);
   }
 
-  /**
-   * Sets the director.
-   * 
-   * @param newValue
-   *          the new director
-   */
   public void setDirector(String newValue) {
     String oldValue = this.director;
     this.director = newValue;
     firePropertyChange(DIRECTOR, oldValue, newValue);
   }
 
-  /**
-   * Sets the writer.
-   * 
-   * @param newValue
-   *          the new writer
-   */
   public void setWriter(String newValue) {
     String oldValue = this.writer;
     this.writer = newValue;
     firePropertyChange(WRITER, oldValue, newValue);
   }
 
-  /**
-   * Gets the genres.
-   * 
-   * @return the genres
-   */
   public List<MediaGenres> getGenres() {
     return genresForAccess;
   }
 
-  /**
-   * Adds the genre.
-   * 
-   * @param newValue
-   *          the new value
-   */
   public void addGenre(MediaGenres newValue) {
     if (!genresForAccess.contains(newValue)) {
       genresForAccess.add(newValue);
@@ -1478,12 +1186,6 @@ public class Movie extends MediaEntity {
     }
   }
 
-  /**
-   * Sets the genres.
-   * 
-   * @param genres
-   *          the new genres
-   */
   public void setGenres(List<MediaGenres> genres) {
     // two way sync of genres
 
@@ -1510,12 +1212,6 @@ public class Movie extends MediaEntity {
     firePropertyChange(GENRES_AS_STRING, null, genres);
   }
 
-  /**
-   * Removes the genre.
-   * 
-   * @param genre
-   *          the genre
-   */
   public void removeGenre(MediaGenres genre) {
     if (genresForAccess.contains(genre)) {
       genresForAccess.remove(genre);
@@ -1525,31 +1221,15 @@ public class Movie extends MediaEntity {
     }
   }
 
-  /**
-   * Gets the certifications.
-   * 
-   * @return the certifications
-   */
   public Certification getCertification() {
     return certification;
   }
 
-  /**
-   * Sets the certifications.
-   * 
-   * @param newValue
-   *          the new certifications
-   */
   public void setCertification(Certification newValue) {
     this.certification = newValue;
     firePropertyChange(CERTIFICATION, null, newValue);
   }
 
-  /**
-   * Gets the checks for rating.
-   * 
-   * @return the checks for rating
-   */
   public boolean getHasRating() {
     if (rating > 0 || scraped) {
       return true;
@@ -1573,21 +1253,10 @@ public class Movie extends MediaEntity {
     return sb.toString();
   }
 
-  /**
-   * Checks if is watched.
-   * 
-   * @return true, if is watched
-   */
   public boolean isWatched() {
     return watched;
   }
 
-  /**
-   * Sets the watched.
-   * 
-   * @param newValue
-   *          the new watched
-   */
   public void setWatched(boolean newValue) {
     boolean oldValue = this.watched;
     this.watched = newValue;
@@ -1628,24 +1297,20 @@ public class Movie extends MediaEntity {
     return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
   }
 
-  /**
-   * Gets the movie set.
-   * 
-   * @return the movieset
-   */
   public MovieSet getMovieSet() {
     return movieSet;
   }
 
-  /**
-   * Sets the movie set.
-   * 
-   * @param newValue
-   *          the new movie set
-   */
   public void setMovieSet(MovieSet newValue) {
     MovieSet oldValue = this.movieSet;
     this.movieSet = newValue;
+
+    if (newValue == null) {
+      movieSetId = null;
+    }
+    else {
+      movieSetId = newValue.getDbId();
+    }
 
     // remove movieset-sorttitle
     if (oldValue != null && newValue == null) {
@@ -1860,6 +1525,7 @@ public class Movie extends MediaEntity {
     return releaseDate;
   }
 
+  @JsonIgnore
   public void setReleaseDate(Date newValue) {
     Date oldValue = this.releaseDate;
     this.releaseDate = newValue;
@@ -1872,7 +1538,7 @@ public class Movie extends MediaEntity {
    * https://xkcd.com/1179/ :P
    */
   public String getReleaseDateFormatted() {
-    if (this.releaseDate == null) {
+    if (this.releaseDate == INITIAL_DATE) {
       return "";
     }
     return new SimpleDateFormat("yyyy-MM-dd").format(this.releaseDate);
@@ -1892,48 +1558,34 @@ public class Movie extends MediaEntity {
    * convenient method to set the release date (parsed from string).
    */
   public void setReleaseDate(String dateAsString) throws ParseException {
-    setReleaseDate(org.tinymediamanager.scraper.util.StrgUtils.parseDate(dateAsString));
+    try {
+      setReleaseDate(org.tinymediamanager.scraper.util.StrgUtils.parseDate(dateAsString));
+    }
+    catch (ParseException e) {
+      setReleaseDate(INITIAL_DATE);
+    }
   }
 
   @Override
   public void saveToDb() {
     // update/insert this movie to the database
-    final EntityManager entityManager = getEntityManager();
-    readWriteLock.readLock().lock();
-    synchronized (entityManager) {
-      // hotfix - some moviesets are not in the context
-      if (movieSet != null && !MovieModuleManager.getInstance().getEntityManager().contains(movieSet)) {
-        MovieModuleManager.getInstance().getEntityManager().merge(movieSet);
-      }
-
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.persist(this);
-      }
+    try {
+      MovieList.getInstance().persistMovie(this);
     }
-    readWriteLock.readLock().unlock();
+    catch (Exception e) {
+      LOGGER.error("failed to persist movie: " + getTitle());
+    }
   }
 
   @Override
   public void deleteFromDb() {
-    // delete this movie from the database
-    final EntityManager entityManager = getEntityManager();
-    readWriteLock.readLock().lock();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.remove(this);
-      }
+    // remove this movie from the database
+    try {
+      MovieList.getInstance().removeMovieFromDb(this);
     }
-    readWriteLock.readLock().unlock();
+    catch (Exception e) {
+      LOGGER.error("failed to remove movie: " + getTitle());
+    }
   }
 
   @Override
@@ -2044,10 +1696,5 @@ public class Movie extends MediaEntity {
       LOGGER.warn("could not delete movie files: " + e.getMessage());
       return false;
     }
-  }
-
-  @Override
-  protected EntityManager getEntityManager() {
-    return MovieModuleManager.getInstance().getEntityManager();
   }
 }

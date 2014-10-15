@@ -59,17 +59,17 @@ public class TvShowArtworkHelper {
 
     switch (type) {
       case FANART:
-        url = show.getFanartUrl();
+        url = show.getArtworkUrl(MediaFileType.FANART);
         filename = "fanart." + FilenameUtils.getExtension(url);
         break;
 
       case POSTER:
-        url = show.getPosterUrl();
+        url = show.getArtworkUrl(MediaFileType.POSTER);
         filename = "poster." + FilenameUtils.getExtension(url);
         break;
 
       case BANNER:
-        url = show.getBannerUrl();
+        url = show.getArtworkUrl(MediaFileType.BANNER);
         filename = "banner." + FilenameUtils.getExtension(url);
         break;
 

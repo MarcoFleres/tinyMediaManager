@@ -25,14 +25,6 @@ import org.tinymediamanager.core.Settings;
  */
 public class Globals {
   public static final Settings settings = Settings.getInstance();
-
-  // // see weird logic: http://www.kimchy.org/juc-executorservice-gotcha/
-  // /** The Constant executor. */
-  // public static final ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 10, // max threads
-  // 2, TimeUnit.SECONDS, // time to wait before closing idle workers
-  // new LinkedBlockingQueue<Runnable>(), // our queue
-  // new TmmThreadFactory("global"));
-
   private static final boolean DONATOR  = License.isValid();
 
   /**

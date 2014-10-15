@@ -203,7 +203,7 @@ public class MovieSetInformationPanel extends JPanel {
             || (source.getClass() == MovieSet.class && "movies".equals(property))) {
           movieEventList.clear();
           movieEventList.addAll(selectionModel.getSelectedMovieSet().getMovies());
-          lblMovieSetFanart.setImagePath(selectionModel.getSelectedMovieSet().getFanart());
+          lblMovieSetFanart.setImagePath(selectionModel.getSelectedMovieSet().getArtworkFilename(MediaFileType.FANART));
           lblMovieSetPoster.setImagePath(selectionModel.getSelectedMovieSet().getArtworkFilename(MediaFileType.POSTER));
         }
 
@@ -211,12 +211,12 @@ public class MovieSetInformationPanel extends JPanel {
         if ((source.getClass() == MovieSet.class && FANART.equals(property))) {
           MovieSet movieSet = (MovieSet) source;
           lblMovieSetFanart.clearImage();
-          lblMovieSetFanart.setImagePath(movieSet.getFanart());
+          lblMovieSetFanart.setImagePath(movieSet.getArtworkFilename(MediaFileType.FANART));
         }
         if ((source.getClass() == MovieSet.class && POSTER.equals(property))) {
           MovieSet movieSet = (MovieSet) source;
           lblMovieSetPoster.clearImage();
-          lblMovieSetPoster.setImagePath(movieSet.getPoster());
+          lblMovieSetPoster.setImagePath(movieSet.getArtworkFilename(MediaFileType.POSTER));
         }
       }
     };

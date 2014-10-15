@@ -36,16 +36,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Inheritance;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -60,8 +50,8 @@ import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.tvshow.TvShowArtworkHelper;
+import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowMediaFileComparator;
-import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.connector.TvShowToXbmcNfoConnector;
 import org.tinymediamanager.core.tvshow.tasks.TvShowEpisodeScrapeTask;
@@ -71,61 +61,56 @@ import org.tinymediamanager.scraper.MediaArtwork.MediaArtworkType;
 import org.tinymediamanager.scraper.MediaCastMember;
 import org.tinymediamanager.scraper.MediaGenres;
 import org.tinymediamanager.scraper.MediaMetadata;
-import org.tinymediamanager.scraper.MediaTrailer;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The Class TvShow.
  * 
  * @author Manuel Laggner
  */
-@Entity
-@Inheritance(strategy = javax.persistence.InheritanceType.JOINED)
 public class TvShow extends MediaEntity {
   private static final Logger         LOGGER             = LoggerFactory.getLogger(TvShow.class);
   private static TvShowArtworkHelper  artworkHelper      = new TvShowArtworkHelper();
 
+  @JsonProperty
   private String                      dataSource         = "";
+  @JsonProperty
   private String                      director           = "";
+  @JsonProperty
   private String                      writer             = "";
+  @JsonProperty
   private int                         runtime            = 0;
+  @JsonProperty
   private int                         votes              = 0;
+  @JsonProperty
   private Date                        firstAired         = null;
+  @JsonProperty
   private String                      status             = "";
+  @JsonProperty
   private String                      studio             = "";
+  @JsonProperty
   private boolean                     watched            = false;
+  @JsonProperty
   private String                      sortTitle          = "";
-
+  @JsonProperty
   private List<String>                genres             = new ArrayList<String>(1);
+  @JsonProperty
   private List<String>                tags               = new ArrayList<String>(0);
+  @JsonProperty
+  private Certification               certification      = Certification.NOT_RATED;
+  @JsonProperty
   private HashMap<Integer, String>    seasonPosterUrlMap = new HashMap<Integer, String>(0);
-  @Deprecated
-  private HashMap<Integer, String>    seasonPosterMap    = new HashMap<Integer, String>(0);
-
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "tvShow")
-  private List<TvShowEpisode>         episodes           = new ArrayList<TvShowEpisode>();
-
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonProperty
   private List<TvShowActor>           actors             = new ArrayList<TvShowActor>();
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private List<MediaTrailer>          trailer            = new ArrayList<MediaTrailer>(0);
+  private List<TvShowEpisode>         episodes           = new ArrayList<TvShowEpisode>();
 
-  @Enumerated(EnumType.STRING)
-  private Certification               certification      = Certification.NOT_RATED;
-
-  @Transient
   private HashMap<Integer, MediaFile> seasonPosters      = new HashMap<Integer, MediaFile>(0);
-
-  @Transient
   private List<TvShowSeason>          seasons            = new ArrayList<TvShowSeason>(1);
-
-  @Transient
   private List<MediaGenres>           genresForAccess    = new ArrayList<MediaGenres>(1);
-
-  @Transient
   private String                      titleSortable      = "";
-
-  @Transient
   private PropertyChangeListener      propertyChangeListener;
 
   static {
@@ -275,9 +260,7 @@ public class TvShow extends MediaEntity {
     return seasons.size();
   }
 
-  /**
-   * Initialize after loading.
-   */
+  @Override
   public void initializeAfterLoading() {
     super.initializeAfterLoading();
 
@@ -289,20 +272,6 @@ public class TvShow extends MediaEntity {
     for (String genre : new ArrayList<String>(genres)) {
       addGenre(MediaGenres.getGenre(genre));
     }
-
-    // create the seasons structure
-    for (TvShowEpisode episode : new ArrayList<TvShowEpisode>(this.episodes)) {
-      addToSeason(episode);
-    }
-
-    // // migration from old structure
-    // if (!seasonPosterMap.isEmpty()) {
-    // for (Entry<Integer, String> entry : seasonPosterMap.entrySet()) {
-    // setSeasonPoster(entry.getKey(), new File(path, entry.getValue()));
-    // }
-    // seasonPosterMap.clear();
-    // saveToDb();
-    // }
 
     // create season poster map
     Pattern pattern = Pattern.compile("(?i)season([0-9]{1,2})-poster\\..{2,4}");
@@ -356,22 +325,16 @@ public class TvShow extends MediaEntity {
   public void removeAllEpisodes() {
     int oldValue = episodes.size();
     if (episodes.size() > 0) {
-      final EntityManager entityManager = TvShowModuleManager.getInstance().getEntityManager();
-      boolean newTransaction = false;
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        newTransaction = true;
-      }
-
       for (int i = episodes.size() - 1; i >= 0; i--) {
         TvShowEpisode episode = episodes.get(i);
         episodes.remove(episode);
         episode.removePropertyChangeListener(propertyChangeListener);
-        entityManager.remove(episode);
-      }
-
-      if (newTransaction) {
-        entityManager.getTransaction().commit();
+        try {
+          TvShowList.getInstance().removeTvShowEpisodeFromDb(episode);
+        }
+        catch (Exception e) {
+          LOGGER.error("failed removing episode from TV show: " + e.getMessage());
+        }
       }
     }
 
@@ -387,24 +350,15 @@ public class TvShow extends MediaEntity {
   public void removeEpisode(TvShowEpisode episode) {
     if (episodes.contains(episode)) {
       int oldValue = episodes.size();
-      final EntityManager entityManager = TvShowModuleManager.getInstance().getEntityManager();
-      synchronized (entityManager) {
 
-        boolean newTransaction = false;
-        if (!entityManager.getTransaction().isActive()) {
-          entityManager.getTransaction().begin();
-          newTransaction = true;
-        }
-
-        episodes.remove(episode);
-        episode.removePropertyChangeListener(propertyChangeListener);
-        removeFromSeason(episode);
-        entityManager.remove(episode);
-        entityManager.persist(this);
-
-        if (newTransaction) {
-          entityManager.getTransaction().commit();
-        }
+      episodes.remove(episode);
+      episode.removePropertyChangeListener(propertyChangeListener);
+      removeFromSeason(episode);
+      try {
+        TvShowList.getInstance().removeTvShowEpisodeFromDb(episode);
+      }
+      catch (Exception e) {
+        LOGGER.error("failed removing episode from TV show: " + e.getMessage());
       }
 
       firePropertyChange(REMOVED_EPISODE, null, episode);
@@ -421,25 +375,16 @@ public class TvShow extends MediaEntity {
   public void deleteEpisode(TvShowEpisode episode) {
     if (episodes.contains(episode)) {
       int oldValue = episodes.size();
-      final EntityManager entityManager = TvShowModuleManager.getInstance().getEntityManager();
-      synchronized (entityManager) {
 
-        boolean newTransaction = false;
-        if (!entityManager.getTransaction().isActive()) {
-          entityManager.getTransaction().begin();
-          newTransaction = true;
-        }
-
-        episode.deleteFilesSafely();
-        episodes.remove(episode);
-        episode.removePropertyChangeListener(propertyChangeListener);
-        removeFromSeason(episode);
-        entityManager.remove(episode);
-        entityManager.persist(this);
-
-        if (newTransaction) {
-          entityManager.getTransaction().commit();
-        }
+      episode.deleteFilesSafely();
+      episodes.remove(episode);
+      episode.removePropertyChangeListener(propertyChangeListener);
+      removeFromSeason(episode);
+      try {
+        TvShowList.getInstance().removeTvShowEpisodeFromDb(episode);
+      }
+      catch (Exception e) {
+        LOGGER.error("failed removing episode from TV show: " + e.getMessage());
       }
 
       firePropertyChange(REMOVED_EPISODE, null, episode);
@@ -679,7 +624,7 @@ public class TvShow extends MediaEntity {
       for (MediaArtwork art : artwork) {
         if (art.getType() == MediaArtworkType.POSTER) {
           // set url
-          setPosterUrl(art.getDefaultUrl());
+          setArtworkUrl(art.getDefaultUrl(), MediaFileType.POSTER);
           // and download it
           artworkHelper.downloadArtwork(this, MediaFileType.POSTER);
           break;
@@ -690,7 +635,7 @@ public class TvShow extends MediaEntity {
       for (MediaArtwork art : artwork) {
         if (art.getType() == MediaArtworkType.BACKGROUND) {
           // set url
-          setFanartUrl(art.getDefaultUrl());
+          setArtworkUrl(art.getDefaultUrl(), MediaFileType.FANART);
           // and download it
           artworkHelper.downloadArtwork(this, MediaFileType.FANART);
           break;
@@ -701,7 +646,7 @@ public class TvShow extends MediaEntity {
       for (MediaArtwork art : artwork) {
         if (art.getType() == MediaArtworkType.BANNER) {
           // set url
-          setBannerUrl(art.getDefaultUrl());
+          setArtworkUrl(art.getDefaultUrl(), MediaFileType.BANNER);
           // and download it
           artworkHelper.downloadArtwork(this, MediaFileType.BANNER);
           break;
@@ -807,7 +752,7 @@ public class TvShow extends MediaEntity {
    * @return the checks for images
    */
   public Boolean getHasImages() {
-    if (!StringUtils.isEmpty(getPoster()) && !StringUtils.isEmpty(getFanart())) {
+    if (!StringUtils.isEmpty(getArtworkFilename(MediaFileType.POSTER)) && !StringUtils.isEmpty(getArtworkFilename(MediaFileType.FANART))) {
       return true;
     }
     return false;
@@ -902,6 +847,7 @@ public class TvShow extends MediaEntity {
    * @param newValue
    *          the new first aired
    */
+  @JsonIgnore
   public void setFirstAired(Date newValue) {
     Date oldValue = this.firstAired;
     this.firstAired = newValue;
@@ -1124,11 +1070,7 @@ public class TvShow extends MediaEntity {
    *          the obj
    */
   public void addActor(TvShowActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.add(obj);
-    }
+    actors.add(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
@@ -1148,11 +1090,7 @@ public class TvShow extends MediaEntity {
    *          the obj
    */
   public void removeActor(TvShowActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.remove(obj);
-    }
+    actors.remove(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
@@ -1164,54 +1102,22 @@ public class TvShow extends MediaEntity {
    */
   public void setActors(List<TvShowActor> newActors) {
     // two way sync of actors
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      // first add the new ones
-      for (TvShowActor actor : newActors) {
-        if (!actors.contains(actor)) {
-          actors.add(actor);
-        }
+    // first add the new ones
+    for (TvShowActor actor : newActors) {
+      if (!actors.contains(actor)) {
+        actors.add(actor);
       }
+    }
 
-      // second remove unused
-      for (int i = actors.size() - 1; i >= 0; i--) {
-        TvShowActor actor = actors.get(i);
-        if (!newActors.contains(actor)) {
-          actors.remove(actor);
-        }
+    // second remove unused
+    for (int i = actors.size() - 1; i >= 0; i--) {
+      TvShowActor actor = actors.get(i);
+      if (!newActors.contains(actor)) {
+        actors.remove(actor);
       }
     }
 
     firePropertyChange(ACTORS, null, this.getActors());
-  }
-
-  /**
-   * Gets the trailers.
-   * 
-   * @return the trailers
-   */
-  public List<MediaTrailer> getTrailers() {
-    return this.trailer;
-  }
-
-  /**
-   * Adds the trailer.
-   * 
-   * @param obj
-   *          the obj
-   */
-  public void addTrailer(MediaTrailer obj) {
-    trailer.add(obj);
-    firePropertyChange(TRAILER, null, trailer);
-  }
-
-  /**
-   * Removes the all trailers.
-   */
-  public void removeAllTrailers() {
-    trailer.clear();
-    firePropertyChange(TRAILER, null, trailer);
   }
 
   /**
@@ -1703,36 +1609,17 @@ public class TvShow extends MediaEntity {
 
   @Override
   public void saveToDb() {
-    // update/insert this movie to the database
-    final EntityManager entityManager = getEntityManager();
-    readWriteLock.readLock().lock();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.persist(this);
-      }
+    try {
+      TvShowList.getInstance().persistTvShow(this);
     }
-    readWriteLock.readLock().unlock();
+    catch (Exception e) {
+      LOGGER.error("problem persisting TV show: " + e.getMessage());
+    }
   }
 
   @Override
   public void deleteFromDb() {
-    // delete this movie from the database
-    final EntityManager entityManager = getEntityManager();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.remove(this);
-      }
-    }
+    TvShowList.getInstance().deleteTvShow(this);
   }
 
   public TvShowEpisode getEpisode(int season, int episode) {
@@ -1804,10 +1691,5 @@ public class TvShow extends MediaEntity {
       LOGGER.warn("could not delete tv show files: " + e.getMessage());
       return false;
     }
-  }
-
-  @Override
-  protected EntityManager getEntityManager() {
-    return TvShowModuleManager.getInstance().getEntityManager();
   }
 }

@@ -13,13 +13,14 @@ fanarttvapi-1.5.jar
 forms-1.8.2.jar
 glazedlists-java_150-1.9.0.jar
 gson-2.2.4.jar
+h2-1.4.181.jar
 httpclient-4.3.2.jar
 httpcore-4.3.1.jar
 httpmime-4.3.2.jar
 imgscalr-lib-4.2.jar
-jackson-annotations-2.1.2.jar
-jackson-core-2.1.2.jar
-jackson-databind-2.1.2.jar
+jackson-annotations-2.4.2.jar
+jackson-core-2.4.2.jar
+jackson-databind-2.4.2.jar
 jcl-over-slf4j-1.7.5.jar
 jdom.jar
 jgoodies-common-1.8.0.jar

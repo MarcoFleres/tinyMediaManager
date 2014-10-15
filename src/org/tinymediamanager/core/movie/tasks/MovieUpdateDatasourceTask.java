@@ -451,7 +451,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
         addMediafilesToMovie(movie, mfs);
 
         // third round - try to match unknown graphics like title.ext or filename.ext as poster
-        if (movie.getPoster().isEmpty()) {
+        if (movie.getArtworkFilename(MediaFileType.POSTER).isEmpty()) {
           for (MediaFile mf : mfs) {
             if (mf.getType().equals(MediaFileType.GRAPHIC)) {
               LOGGER.debug("parsing unknown graphic " + mf.getFilename());

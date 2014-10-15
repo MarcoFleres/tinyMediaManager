@@ -37,6 +37,7 @@ import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
+import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.ui.ColumnLayout;
@@ -295,8 +296,8 @@ public class TvShowInformationPanel extends JPanel {
 
   private void setPoster(TvShow tvShow) {
     lblTvShowPoster.clearImage();
-    lblTvShowPoster.setImagePath(tvShow.getPoster());
-    Dimension posterSize = tvShow.getPosterSize();
+    lblTvShowPoster.setImagePath(tvShow.getArtworkFilename(MediaFileType.POSTER));
+    Dimension posterSize = tvShow.getArtworkDimension(MediaFileType.POSTER);
     if (posterSize.width > 0 && posterSize.height > 0) {
       lblPosterSize.setText(BUNDLE.getString("mediafiletype.poster") + " - " + posterSize.width + "x" + posterSize.height); //$NON-NLS-1$
     }
@@ -307,8 +308,8 @@ public class TvShowInformationPanel extends JPanel {
 
   private void setFanart(TvShow tvShow) {
     lblTvShowBackground.clearImage();
-    lblTvShowBackground.setImagePath(tvShow.getFanart());
-    Dimension fanartSize = tvShow.getFanartSize();
+    lblTvShowBackground.setImagePath(tvShow.getArtworkFilename(MediaFileType.FANART));
+    Dimension fanartSize = tvShow.getArtworkDimension(MediaFileType.FANART);
     if (fanartSize.width > 0 && fanartSize.height > 0) {
       lblFanartSize.setText(BUNDLE.getString("mediafiletype.fanart") + " - " + fanartSize.width + "x" + fanartSize.height); //$NON-NLS-1$
     }
@@ -319,8 +320,8 @@ public class TvShowInformationPanel extends JPanel {
 
   private void setBanner(TvShow tvShow) {
     lblTvShowBanner.clearImage();
-    lblTvShowBanner.setImagePath(tvShow.getBanner());
-    Dimension bannerSize = tvShow.getBannerSize();
+    lblTvShowBanner.setImagePath(tvShow.getArtworkFilename(MediaFileType.BANNER));
+    Dimension bannerSize = tvShow.getArtworkDimension(MediaFileType.BANNER);
     if (bannerSize.width > 0 && bannerSize.height > 0) {
       lblBannerSize.setText(BUNDLE.getString("mediafiletype.banner") + " - " + bannerSize.width + "x" + bannerSize.height); //$NON-NLS-1$
     }

@@ -38,6 +38,7 @@ import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
+import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.ui.ColumnLayout;
@@ -396,8 +397,8 @@ public class MovieInformationPanel extends JPanel {
 
   private void setPoster(Movie movie) {
     lblMoviePoster.clearImage();
-    lblMoviePoster.setImagePath(movie.getPoster());
-    Dimension posterSize = movie.getPosterSize();
+    lblMoviePoster.setImagePath(movie.getArtworkFilename(MediaFileType.POSTER));
+    Dimension posterSize = movie.getArtworkDimension(MediaFileType.POSTER);
     if (posterSize.width > 0 && posterSize.height > 0) {
       lblPosterSize.setText(BUNDLE.getString("mediafiletype.poster") + " - " + posterSize.width + "x" + posterSize.height); //$NON-NLS-1$
     }
@@ -408,8 +409,8 @@ public class MovieInformationPanel extends JPanel {
 
   private void setFanart(Movie movie) {
     lblMovieFanart.clearImage();
-    lblMovieFanart.setImagePath(movie.getFanart());
-    Dimension fanartSize = movie.getFanartSize();
+    lblMovieFanart.setImagePath(movie.getArtworkFilename(MediaFileType.FANART));
+    Dimension fanartSize = movie.getArtworkDimension(MediaFileType.FANART);
     if (fanartSize.width > 0 && fanartSize.height > 0) {
       lblFanartSize.setText(BUNDLE.getString("mediafiletype.fanart") + " - " + fanartSize.width + "x" + fanartSize.height); //$NON-NLS-1$
     }

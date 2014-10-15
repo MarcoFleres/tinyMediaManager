@@ -68,11 +68,13 @@ public class TvShowRemoveAction extends AbstractAction {
         for (TvShowEpisode episode : episodes) {
           season.getTvShow().removeEpisode(episode);
         }
+        season.getTvShow().saveToDb();
       }
       // remove episodes
       if (obj instanceof TvShowEpisode) {
         TvShowEpisode tvShowEpisode = (TvShowEpisode) obj;
         tvShowEpisode.getTvShow().removeEpisode(tvShowEpisode);
+        tvShowEpisode.getTvShow().saveToDb();
       }
     }
   }

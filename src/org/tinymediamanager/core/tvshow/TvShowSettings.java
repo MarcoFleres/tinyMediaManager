@@ -18,8 +18,6 @@ package org.tinymediamanager.core.tvshow;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -74,8 +72,6 @@ public class TvShowSettings extends AbstractModelObject {
   private boolean             renamerSpaceSubstitution    = false;
   private String              renamerSpaceReplacement     = "_";
   private boolean             syncTrakt                   = false;
-
-  @Enumerated(EnumType.STRING)
   private TvShowEpisodeNaming renamerFormat               = TvShowEpisodeNaming.WITH_SE;
 
   public TvShowSettings() {

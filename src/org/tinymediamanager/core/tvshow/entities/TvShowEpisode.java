@@ -26,17 +26,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.FetchType;
-import javax.persistence.Inheritance;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -52,46 +44,61 @@ import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowMediaFileComparator;
-import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeToXbmcNfoConnector;
 import org.tinymediamanager.scraper.MediaArtwork;
 import org.tinymediamanager.scraper.MediaArtwork.MediaArtworkType;
 import org.tinymediamanager.scraper.MediaCastMember;
 import org.tinymediamanager.scraper.MediaMetadata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * The Class TvShowEpisode.
  * 
  * @author Manuel Laggner
  */
-@Entity
-@Inheritance(strategy = javax.persistence.InheritanceType.JOINED)
 public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpisode> {
   private static final Logger LOGGER          = LoggerFactory.getLogger(TvShowEpisode.class);
 
-  @ManyToOne
-  private TvShow              tvShow          = null;
+  @JsonProperty
   private int                 episode         = 0;
+  @JsonProperty
   private int                 season          = -1;
+  @JsonProperty
   public String               dvdSeason       = "";
+  @JsonProperty
   public String               dvdEpisode      = "";
+  @JsonProperty
   public String               combinedSeason  = "";                                          // ???
+  @JsonProperty
   public String               combinedEpisode = "";                                          // ???
+  @JsonProperty
   public String               absoluteNumber  = "";
+  @JsonProperty
   private Date                firstAired      = null;
+  @JsonProperty
   private String              director        = "";
+  @JsonProperty
   private String              writer          = "";
+  @JsonProperty
   private boolean             disc            = false;
+  @JsonProperty
   private boolean             watched         = false;
+  @JsonProperty
   private int                 votes           = 0;
+  @JsonProperty
   private boolean             subtitles       = false;
-
-  @Transient
-  private boolean             newlyAdded      = false;
-
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private List<TvShowActor>   actors          = new ArrayList<TvShowActor>(0);
+  @JsonProperty
+  private List<TvShowActor>   actors          = new ArrayList<TvShowActor>();
+  @JsonProperty
   private List<String>        tags            = new ArrayList<String>(0);
+  @JsonProperty
+  private UUID                tvShowId        = null;
+
+  private TvShow              tvShow          = null;
+
+  private boolean             newlyAdded      = false;
 
   static {
     mediaFileComparator = new TvShowMediaFileComparator();
@@ -130,10 +137,10 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     year = new String(source.year);
     plot = new String(source.plot);
     rating = source.rating;
-    posterUrl = new String(source.posterUrl);
-    fanartUrl = new String(source.fanartUrl);
-    bannerUrl = new String(source.bannerUrl);
-    thumbUrl = new String(source.thumbUrl);
+    setArtworkUrl(new String(source.getArtworkUrl(MediaFileType.POSTER)), MediaFileType.POSTER);
+    setArtworkUrl(new String(source.getArtworkUrl(MediaFileType.FANART)), MediaFileType.FANART);
+    setArtworkUrl(new String(source.getArtworkUrl(MediaFileType.BANNER)), MediaFileType.BANNER);
+    setArtworkUrl(new String(source.getArtworkUrl(MediaFileType.THUMB)), MediaFileType.THUMB);
     dateAdded = new Date(source.dateAdded.getTime());
     scraped = source.scraped;
     ids.putAll(source.ids);
@@ -149,11 +156,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     watched = source.watched;
     votes = source.votes;
     subtitles = source.subtitles;
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.addAll(source.actors);
-    }
+    actors.addAll(source.actors);
   }
 
   /**
@@ -171,6 +174,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    * @param newValue
    *          the new first aired
    */
+  @JsonIgnore
   public void setFirstAired(Date newValue) {
     Date oldValue = this.firstAired;
     this.firstAired = newValue;
@@ -249,21 +253,28 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    * @throws ParseException
    *           if string cannot be parsed!
    */
-  public void setFirstAired(String aired) throws ParseException {
-    Pattern date = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
-    Matcher m = date.matcher(aired);
-    if (m.find()) {
-      this.firstAired = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
-    }
-    else {
-      date = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
-      m = date.matcher(aired);
+  public void setFirstAired(String aired) {
+    try {
+      Pattern date = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
+      Matcher m = date.matcher(aired);
       if (m.find()) {
-        this.firstAired = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+        this.firstAired = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
       }
       else {
-        throw new ParseException("could not parse date from: " + aired, 0);
+        date = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
+        m = date.matcher(aired);
+        if (m.find()) {
+          this.firstAired = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+        }
+        else {
+          // still not found; try to create a Date object out of it
+          firstAired = new Date(Long.parseLong(aired));
+        }
       }
+    }
+    catch (Exception e) {
+      firstAired = null;
+      LOGGER.warn("could not parse date from: " + aired);
     }
   }
 
@@ -276,6 +287,10 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return tvShow;
   }
 
+  public UUID getTvShowDbId() {
+    return tvShowId;
+  }
+
   /**
    * Sets the tv show.
    * 
@@ -285,6 +300,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
   public void setTvShow(TvShow newValue) {
     TvShow oldValue = this.tvShow;
     this.tvShow = newValue;
+    this.tvShowId = tvShow.getDbId();
     firePropertyChange(TV_SHOW, oldValue, newValue);
   }
 
@@ -371,15 +387,16 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    * Write thumb image.
    */
   public void writeThumbImage() {
-    if (StringUtils.isNotEmpty(getThumbUrl())) {
+    String thumbUrl = getArtworkUrl(MediaFileType.THUMB);
+    if (StringUtils.isNotEmpty(thumbUrl)) {
       boolean firstImage = true;
       // create correct filename
 
       MediaFile mf = getMediaFiles(MediaFileType.VIDEO).get(0);
-      String filename = FilenameUtils.getBaseName(mf.getFilename()) + "-thumb." + FilenameUtils.getExtension(getThumbUrl());
+      String filename = FilenameUtils.getBaseName(mf.getFilename()) + "-thumb." + FilenameUtils.getExtension(thumbUrl);
 
       // get image in thread
-      MediaEntityImageFetcherTask task = new MediaEntityImageFetcherTask(this, getThumbUrl(), MediaArtworkType.THUMB, filename, firstImage);
+      MediaEntityImageFetcherTask task = new MediaEntityImageFetcherTask(this, thumbUrl, MediaArtworkType.THUMB, filename, firstImage);
       TmmTaskManager.getInstance().addImageDownloadTask(task);
     }
   }
@@ -402,14 +419,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     setCombinedSeason(metadata.getStringValue(MediaMetadata.SEASON_NR_COMBINED));
     setCombinedEpisode(metadata.getStringValue(MediaMetadata.EPISODE_NR_COMBINED));
     setAbsoluteNumber(metadata.getStringValue(MediaMetadata.ABSOLUTE_NR));
-
-    try {
-      setFirstAired(metadata.getStringValue(MediaMetadata.RELEASE_DATE));
-    }
-    catch (ParseException e) {
-      LOGGER.warn(e.getMessage());
-    }
-
+    setFirstAired(metadata.getStringValue(MediaMetadata.RELEASE_DATE));
     setRating(metadata.getFloatValue(MediaMetadata.RATING));
 
     List<TvShowActor> actors = new ArrayList<TvShowActor>();
@@ -449,7 +459,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
 
     for (MediaArtwork ma : metadata.getFanart()) {
       if (ma.getType() == MediaArtworkType.THUMB) {
-        setThumbUrl(ma.getDefaultUrl());
+        setArtworkUrl(ma.getDefaultUrl(), MediaFileType.THUMB);
         writeNewThumb = true;
         break;
       }
@@ -504,7 +514,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    * @return the checks for images
    */
   public Boolean getHasImages() {
-    if (StringUtils.isNotEmpty(getThumb())) {
+    if (StringUtils.isNotEmpty(getArtworkFilename(MediaFileType.THUMB))) {
       return true;
     }
     return false;
@@ -559,11 +569,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    *          the obj
    */
   public void addActor(TvShowActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.add(obj);
-    }
+    actors.add(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
@@ -594,11 +600,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    *          the obj
    */
   public void removeActor(TvShowActor obj) {
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
-      actors.remove(obj);
-    }
+    actors.remove(obj);
     firePropertyChange(ACTORS, null, this.getActors());
   }
 
@@ -609,10 +611,8 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    *          the new actors
    */
   public void setActors(List<TvShowActor> newActors) {
-    // two way sync of actors
-    // actors are (like media files) proxied by objectdb;
-    // this is why we need a lock here
-    synchronized (getEntityManager()) {
+    // two way sync of actors - only if tv show object is not null
+    if (tvShow != null) {
       List<TvShowActor> tvShowActors = new ArrayList<TvShowActor>(getTvShow().getActors());
       // first add the new ones
       for (TvShowActor actor : newActors) {
@@ -628,6 +628,10 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
           actors.remove(actor);
         }
       }
+    }
+    else {
+      // loading of DB!!
+      actors.addAll(newActors);
     }
 
     firePropertyChange(ACTORS, null, this.getActors());
@@ -669,67 +673,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
 
     return episodes;
   }
-
-  // /**
-  // * Find images.
-  // */
-  // public void findImages() {
-  // // find thumb
-  // findThumb();
-  // }
-  //
-  // /**
-  // * Find thumb.
-  // */
-  // private void findThumb() {
-  // boolean found = false;
-  // // there are 2 possible filenames for thumbs
-  //
-  // // a) episodename-thumb.jpg/png (as described in the xbmc wiki http://wiki.xbmc.org/index.php?title=Frodo_FAQ#Local_images)
-  // Pattern pattern = Pattern.compile("(?i)" + Pattern.quote(getTitle()) + "-thumb\\..{2,4}");
-  // File[] files = new File(path).listFiles();
-  // for (File file : files) {
-  // Matcher matcher = pattern.matcher(file.getName());
-  // if (matcher.matches()) {
-  // setFanart(file);
-  // LOGGER.debug("found thumb " + file.getPath());
-  // found = true;
-  // break;
-  // }
-  // }
-  //
-  // // b) filename-thumb/fanart.jpg/png
-  // if (!found) {
-  // String mediafile = "";
-  // try {
-  // mediafile = FilenameUtils.getBaseName(getMediaFiles(MediaFileType.VIDEO).get(0).getFilename());
-  // }
-  // catch (Exception e) {
-  // System.out.println(path);
-  // }
-  // pattern = Pattern.compile("(?i)" + Pattern.quote(mediafile) + "-(thumb|fanart)\\..{2,4}");
-  // for (File file : files) {
-  // Matcher matcher = pattern.matcher(file.getName());
-  // if (matcher.matches()) {
-  // setFanart(file);
-  // LOGGER.debug("found thumb " + file.getPath());
-  // found = true;
-  // break;
-  // }
-  // }
-  // }
-  //
-  // // if we did not find anything, try to download it
-  // if (!found && StringUtils.isNotEmpty(thumbUrl)) {
-  // writeThumbImage();
-  // found = true;
-  // LOGGER.debug("got thumb url: " + thumbUrl + " ; try to download this");
-  // }
-  //
-  // if (!found) {
-  // LOGGER.debug("Sorry, could not find a thumb.");
-  // }
-  // }
 
   /**
    * Gets the media info video format (i.e. 720p).
@@ -815,11 +758,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return filesToCache;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
   @Override
   public int compareTo(TvShowEpisode otherTvShowEpisode) {
     if (getTvShow() != otherTvShowEpisode.getTvShow()) {
@@ -897,36 +835,17 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
 
   @Override
   public void saveToDb() {
-    // update/insert this movie to the database
-    final EntityManager entityManager = getEntityManager();
-    readWriteLock.readLock().lock();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.persist(this);
-      }
+    try {
+      TvShowList.getInstance().persistTvShowEpisode(this);
     }
-    readWriteLock.readLock().unlock();
+    catch (Exception e) {
+      LOGGER.error("problem persisting episode: " + e.getMessage());
+    }
   }
 
   @Override
   public void deleteFromDb() {
-    // delete this movie from the database
-    final EntityManager entityManager = getEntityManager();
-    synchronized (entityManager) {
-      if (!entityManager.getTransaction().isActive()) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(this);
-        entityManager.getTransaction().commit();
-      }
-      else {
-        entityManager.remove(this);
-      }
-    }
+    tvShow.removeEpisode(this);
   }
 
   public boolean isNewlyAdded() {
@@ -1130,10 +1049,5 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
       LOGGER.warn("could not delete episode files: " + e.getMessage());
       return false;
     }
-  }
-
-  @Override
-  protected EntityManager getEntityManager() {
-    return TvShowModuleManager.getInstance().getEntityManager();
   }
 }

@@ -340,10 +340,10 @@ public class MovieSetEditorDialog extends TmmDialog {
       tfTmdbId.setText(String.valueOf(movieSetToEdit.getTmdbId()));
       tpOverview.setText(movieSetToEdit.getPlot());
       moviesInSet.addAll(movieSetToEdit.getMovies());
-      lblPoster.setImageUrl(movieSetToEdit.getPosterUrl());
-      lblPoster.setImagePath(movieSetToEdit.getPoster());
-      lblFanart.setImageUrl(movieSetToEdit.getFanartUrl());
-      lblFanart.setImagePath(movieSetToEdit.getFanart());
+      lblPoster.setImageUrl(movieSetToEdit.getArtworkUrl(MediaFileType.POSTER));
+      lblPoster.setImagePath(movieSetToEdit.getArtworkFilename(MediaFileType.POSTER));
+      lblFanart.setImageUrl(movieSetToEdit.getArtworkUrl(MediaFileType.FANART));
+      lblFanart.setImagePath(movieSetToEdit.getArtworkFilename(MediaFileType.FANART));
 
       // extra artwork
       lblBanner.setImagePath(movieSetToEdit.getArtworkFilename(MediaFileType.BANNER));
@@ -446,10 +446,10 @@ public class MovieSetEditorDialog extends TmmDialog {
       movieSetToEdit.setPlot(tpOverview.getText());
 
       // image changes
-      if (StringUtils.isNotEmpty(lblPoster.getImageUrl()) && !lblPoster.getImageUrl().equals(movieSetToEdit.getPosterUrl())) {
+      if (StringUtils.isNotEmpty(lblPoster.getImageUrl()) && !lblPoster.getImageUrl().equals(movieSetToEdit.getArtworkUrl(MediaFileType.POSTER))) {
         movieSetToEdit.setArtworkUrl(lblPoster.getImageUrl(), MediaFileType.POSTER);
       }
-      if (StringUtils.isNotEmpty(lblFanart.getImageUrl()) && !lblFanart.getImageUrl().equals(movieSetToEdit.getFanartUrl())) {
+      if (StringUtils.isNotEmpty(lblFanart.getImageUrl()) && !lblFanart.getImageUrl().equals(movieSetToEdit.getArtworkUrl(MediaFileType.POSTER))) {
         movieSetToEdit.setArtworkUrl(lblFanart.getImageUrl(), MediaFileType.FANART);
       }
 
