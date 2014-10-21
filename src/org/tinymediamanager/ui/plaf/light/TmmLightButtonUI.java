@@ -42,11 +42,10 @@ import com.jtattoo.plaf.JTattooUtilities;
  * 
  */
 public class TmmLightButtonUI extends BaseButtonUI {
-  private static Color BUTTON_DEFAULT_COLOR  = new Color(76, 76, 76);
-  private static Color BUTTON_ROLLOVER_COLOR = new Color(42, 42, 42);
-  private static Color BUTTON_PRESS_COLOR    = new Color(141, 165, 179);
+  private static Color BUTTON_DEFAULT_COLOR = new Color(76, 76, 76);
+  private static Color BUTTON_PRESS_COLOR   = new Color(141, 165, 179);
 
-  private boolean      isFlatButton          = false;
+  private boolean      isFlatButton         = false;
 
   public static ComponentUI createUI(JComponent c) {
     return new TmmLightButtonUI();
@@ -87,17 +86,21 @@ public class TmmLightButtonUI extends BaseButtonUI {
     int h = insets.bottom > 0 ? height - 1 : height;
 
     ButtonModel model = b.getModel();
+
+    // draw the focus ring
+    if ((b.isRolloverEnabled()) && (model.isRollover())) {
+      g2D.setColor(BUTTON_PRESS_COLOR);
+      g2D.fillRoundRect(x - 1, y - 1, w + 1, h + 1, borderRadius, borderRadius);
+    }
+
     if ((model.isPressed()) && (model.isArmed())) {
       g2D.setColor(BUTTON_PRESS_COLOR);
-    }
-    else if ((b.isRolloverEnabled()) && (model.isRollover())) {
-      g2D.setColor(BUTTON_ROLLOVER_COLOR);
     }
     else {
       g2D.setColor(BUTTON_DEFAULT_COLOR);
     }
 
-    g2D.fillRoundRect(x, y, w - 1, h - 1, borderRadius, borderRadius);
+    g2D.fillRoundRect(x + 1, y + 1, w - 3, h - 3, borderRadius, borderRadius);
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
   }
 
