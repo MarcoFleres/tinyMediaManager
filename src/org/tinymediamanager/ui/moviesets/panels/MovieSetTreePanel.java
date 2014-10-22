@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -31,6 +32,8 @@ import org.tinymediamanager.ui.moviesets.MovieSetSelectionModel;
 import org.tinymediamanager.ui.moviesets.MovieSetTreeCellRenderer;
 import org.tinymediamanager.ui.moviesets.MovieSetTreeModel;
 import org.tinymediamanager.ui.moviesets.MovieSetUIModule;
+import org.tinymediamanager.ui.moviesets.actions.MovieSetAddAction;
+import org.tinymediamanager.ui.moviesets.actions.MovieSetRemoveAction;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -85,6 +88,14 @@ public class MovieSetTreePanel extends JPanel implements ITmmTabItem {
     // });
 
     // add(textField, "2, 1, fill, fill");
+
+    JToolBar toolBar = new JToolBar();
+    toolBar.setRollover(true);
+    toolBar.setFloatable(false);
+    toolBar.setOpaque(false);
+    toolBar.add(new MovieSetAddAction(false));
+    toolBar.add(new MovieSetRemoveAction(false));
+    add(toolBar, "2, 1, fill, fill");
 
     JScrollPane scrollPane = new JScrollPane();
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -153,12 +164,13 @@ public class MovieSetTreePanel extends JPanel implements ITmmTabItem {
         ColumnSpec.decode("center:" + MovieSetTreeCellRenderer.COLUMN_WIDTH + "px"), ColumnSpec.decode("1px") },
         new RowSpec[] { FormFactory.DEFAULT_ROWSPEC }));
 
-    JLabel lblTvShowsColumn = new JLabel(BUNDLE.getString("metatag.movieset")); //$NON-NLS-1$
-    panelHeader.add(lblTvShowsColumn, "1, 1");
+    JLabel lblMovieSetsColumn = new JLabel(BUNDLE.getString("metatag.movieset")); //$NON-NLS-1$
+    lblMovieSetsColumn.setHorizontalAlignment(JLabel.CENTER);
+    panelHeader.add(lblMovieSetsColumn, "1, 1");
 
-    JLabel lblSeasonColumn = new JLabel("M");
-    lblSeasonColumn.setHorizontalAlignment(JLabel.CENTER);
-    panelHeader.add(lblSeasonColumn, "3, 1");
+    JLabel lblMovieCountColumn = new JLabel("M");
+    lblMovieCountColumn.setHorizontalAlignment(JLabel.CENTER);
+    panelHeader.add(lblMovieCountColumn, "3, 1");
 
     JLabel lblNfoColumn = new JLabel("");
     lblNfoColumn.setHorizontalAlignment(JLabel.CENTER);

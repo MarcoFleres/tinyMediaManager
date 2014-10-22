@@ -143,6 +143,11 @@ public class MovieListPanel extends JPanel implements ITmmTabItem {
     movieTable.getTableHeader().getColumnModel().getColumn(5).setMaxWidth(25);
     movieTable.getColumnModel().getColumn(5).setHeaderValue(IconManager.SUBTITLE);
 
+    // watched column
+    movieTable.getTableHeader().getColumnModel().getColumn(6).setHeaderRenderer(new IconHeaderRenderer("Watched"));
+    movieTable.getTableHeader().getColumnModel().getColumn(6).setMaxWidth(25);
+    movieTable.getColumnModel().getColumn(6).setHeaderValue(IconManager.PLAY_SMALL);
+
     JScrollPane scrollPane = TmmTable.createJScrollPane(movieTable, new int[] { 0 });
     add(scrollPane, "1, 3, 5, 1, fill, fill");
   }

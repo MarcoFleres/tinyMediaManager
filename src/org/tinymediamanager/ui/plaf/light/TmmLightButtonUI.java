@@ -15,7 +15,9 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -29,8 +31,11 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
 import javax.swing.JComponent;
 import javax.swing.JMenuBar;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.View;
 
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.BaseButtonUI;
@@ -160,6 +165,69 @@ public class TmmLightButtonUI extends BaseButtonUI {
 
   @Override
   protected void paintFocus(Graphics g, AbstractButton b, Rectangle viewRect, Rectangle textRect, Rectangle iconRect) {
+  }
+
+  @Override
+  public void paint(Graphics g, JComponent c) {
+    Graphics2D g2D = (Graphics2D) g;
+
+    AbstractButton b = (AbstractButton) c;
+    Font f = c.getFont();
+    g.setFont(f);
+    FontMetrics fm = getFontMetrics(b, g, b.getFont());
+    Insets insets = c.getInsets();
+
+    viewRect.x = insets.left;
+    viewRect.y = insets.top;
+    viewRect.width = b.getWidth() - (insets.right + viewRect.x);
+    viewRect.height = b.getHeight() - (insets.bottom + viewRect.y);
+
+    textRect.x = textRect.y = textRect.width = textRect.height = 0;
+    iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
+
+    int iconTextGap = defaultTextIconGap;
+    if (JTattooUtilities.getJavaVersion() >= 1.4) {
+      iconTextGap = b.getIconTextGap();
+    }
+    String text = SwingUtilities.layoutCompoundLabel(c, fm, b.getText(), b.getIcon(), b.getVerticalAlignment(), b.getHorizontalAlignment(),
+        b.getVerticalTextPosition(), b.getHorizontalTextPosition(), viewRect, iconRect, textRect, b.getText() == null ? 0 : iconTextGap);
+
+    paintBackground(g, b);
+
+    if (b.getIcon() != null) {
+      if (!b.isEnabled()) {
+        Composite savedComposite = g2D.getComposite();
+        AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+        g2D.setComposite(alpha);
+        paintIcon(g, c, iconRect);
+        g2D.setComposite(savedComposite);
+      }
+      else {
+        paintIcon(g, c, iconRect);
+      }
+    }
+
+    if (text != null && !text.equals("")) {
+      View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+      if (v != null) {
+        Object savedRenderingHint = null;
+        if (AbstractLookAndFeel.getTheme().isTextAntiAliasingOn()) {
+          savedRenderingHint = g2D.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+          g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        }
+        v.paint(g, textRect);
+        if (AbstractLookAndFeel.getTheme().isTextAntiAliasingOn()) {
+          g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, savedRenderingHint);
+        }
+      }
+      else {
+        paintText(g, b, textRect, text);
+      }
+    }
+
+    if (b.isFocusPainted() && b.hasFocus()) {
+      paintFocus(g, b, viewRect, textRect, iconRect);
+    }
   }
 
   @SuppressWarnings("deprecation")

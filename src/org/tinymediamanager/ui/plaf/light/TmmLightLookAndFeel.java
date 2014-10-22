@@ -224,7 +224,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "RadioButtonMenuItemUI", BaseRadioButtonMenuItemUI.class.getName(), 
         "PopupMenuSeparatorUI", BaseSeparatorUI.class.getName(), 
         "DesktopPaneUI", BaseDesktopPaneUI.class.getName(),
-        "ToolBarUI", BaseMenuBarUI.class.getName(), 
         "TextFieldUI", BaseTextFieldUI.class.getName(),
         "RootPaneUI", BaseRootPaneUI.class.getName(),
         
@@ -236,6 +235,7 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "ButtonUI", TmmLightButtonUI.class.getName(),
         "ComboBoxUI", TmmLightComboBoxUI.class.getName(),
         "TreeUI", TmmLightTreeUI.class.getName(),
+        "ToolBarUI", TmmLightToolBarUI.class.getName(),
     };
     table.putDefaults(uiDefaults);
     // @formatter:on
