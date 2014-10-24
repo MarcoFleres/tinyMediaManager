@@ -638,6 +638,7 @@ public class TinyMediaManager {
             if (file.length() != cur.length() || !cur.exists()) {
               try {
                 FileUtils.copyFile(file, cur);
+                cur.setExecutable(true);
               }
               catch (IOException e) {
                 LOGGER.error("Could not update JavaApplicationStub");
