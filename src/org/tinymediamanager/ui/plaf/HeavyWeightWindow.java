@@ -11,7 +11,7 @@ public class HeavyWeightWindow extends JWindow {
   public HeavyWeightWindow(Window parent) {
     super(parent);
     setFocusableWindowState(false);
-    setType(Window.Type.POPUP);
+    // setType(Window.Type.POPUP);
 
     // Try to set "always-on-top" for the popup window.
     // Applets usually don't have sufficient permissions to do it.
