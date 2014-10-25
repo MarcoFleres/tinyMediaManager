@@ -67,9 +67,9 @@ public class TmmLightDefaultTheme extends TmmTheme {
     windowInactiveTitleColorDark = new ColorUIResource(39, 106, 204);
     windowInactiveBorderColor = new ColorUIResource(39, 106, 204);
 
-    menuBackgroundColor = backgroundColor;
+    menuBackgroundColor = white;
     menuSelectionForegroundColor = white;
-    menuSelectionBackgroundColor = new ColorUIResource(49, 106, 197);
+    menuSelectionBackgroundColor = selectionBackgroundColor;
     menuColorLight = new ColorUIResource(248, 247, 241);
     menuColorDark = backgroundColor;
 

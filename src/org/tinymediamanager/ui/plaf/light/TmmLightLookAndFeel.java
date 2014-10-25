@@ -37,6 +37,7 @@ import com.jtattoo.plaf.BaseMenuBarUI;
 import com.jtattoo.plaf.BaseMenuItemUI;
 import com.jtattoo.plaf.BaseMenuUI;
 import com.jtattoo.plaf.BasePasswordFieldUI;
+import com.jtattoo.plaf.BasePopupMenuUI;
 import com.jtattoo.plaf.BaseProgressBarUI;
 import com.jtattoo.plaf.BaseRadioButtonMenuItemUI;
 import com.jtattoo.plaf.BaseRadioButtonUI;
@@ -217,7 +218,7 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "FileChooserUI", BaseFileChooserUI.class.getName(), 
         "MenuBarUI", BaseMenuBarUI.class.getName(), 
         "MenuUI", BaseMenuUI.class.getName(),
-        
+        "PopupMenuUI", BasePopupMenuUI.class.getName(),
         "MenuItemUI", BaseMenuItemUI.class.getName(), 
         "CheckBoxMenuItemUI", BaseCheckBoxMenuItemUI.class.getName(), 
         "RadioButtonMenuItemUI", BaseRadioButtonMenuItemUI.class.getName(), 
@@ -235,7 +236,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "ComboBoxUI", TmmLightComboBoxUI.class.getName(),
         "TreeUI", TmmLightTreeUI.class.getName(),
         "ToolBarUI", TmmLightToolBarUI.class.getName(),
-        "PopupMenuUI", TmmLightPopupMenuUI.class.getName(),
     };
     table.putDefaults(uiDefaults);
     // @formatter:on
