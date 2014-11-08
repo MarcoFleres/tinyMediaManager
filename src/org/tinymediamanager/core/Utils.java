@@ -678,7 +678,7 @@ public class Utils {
         l = locale;
       }
     }
-    if (l == null && countries != null && countries.size() > 0) {
+    if (l == null && countries.size() > 0) {
       // well, take the first one
       l = countries.get(0);
     }
@@ -879,56 +879,5 @@ public class Utils {
       arguments.add("-Dfile.encoding=UTF-8");
     }
     return arguments;
-  }
-
-  /**
-   * tries to detect the XBMC/Kodi installation folder
-   * 
-   * @return File or NULL
-   */
-  public static File detectXbmcFolder() {
-    String[] appFolder = { "Kodi", "kodi", "xbmc", "XMBC" };
-    String[] installFolder = { System.getenv("ProgramFiles(x86)"), System.getenv("ProgramFiles"), System.getenv("ProgramData"), "/usr/share/",
-        "/usr/lib/", "/Applications/XBMC.app/Contents/Resources" };
-
-    for (String i : installFolder) {
-      if (StringUtils.isEmpty(i)) {
-        continue;
-      }
-      for (String a : appFolder) {
-        File path = new File(i, a);
-        if (path.exists()) {
-          return path;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * tries to detect the XBMC/Kodi userdata folder
-   * 
-   * @return File or NULL
-   */
-  public static File detectXbmcUserdataFolder() {
-    // http://wiki.xbmc.org/?title=Userdata
-    String[] appFolder = { "Kodi", "XMBC", "kodi", ".xbmc", "xbmc", ".kodi" };
-    String[] userFolder = { System.getenv("APPDATA"), System.getProperty("user.home"),
-        "/Users/" + System.getProperty("user.name") + "/Library/Application Support" };
-
-    for (String u : userFolder) {
-      if (StringUtils.isEmpty(u)) {
-        continue;
-      }
-      for (String a : appFolder) {
-        File path = new File(u, a);
-        if (path.exists()) {
-          return path;
-        }
-      }
-    }
-
-    return null;
   }
 }

@@ -57,7 +57,7 @@ public class JSearchTextField extends JIconTextField implements FocusListener {
     super();
     this.textWhenNotFocused = BUNDLE.getString("tmm.searchfield"); //$NON-NLS-1$
     this.addFocusListener(this);
-    this.setBorder(new SearchTextFieldBorder());
+     this.setBorder(new SearchTextFieldBorder());
   }
 
   public String getTextWhenNotFocused() {
@@ -106,7 +106,7 @@ public class JSearchTextField extends JIconTextField implements FocusListener {
   private static class SearchTextFieldBorder extends AbstractBorder implements UIResource {
     private static final long   serialVersionUID = -7328010784938968201L;
     private static final Insets insets           = new Insets(0, 26, 0, 10);
-    private int                 focusWidth       = 2;
+    private int focusWidth = 2;
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {

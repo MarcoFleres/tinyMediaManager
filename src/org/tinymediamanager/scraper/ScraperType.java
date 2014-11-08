@@ -13,38 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.tinymediamanager.core;
+package org.tinymediamanager.scraper;
 
 /**
- * various MediaFileTypes
+ * ENUM for all scrapers
  * 
- * @author Myron Boyle
+ * @author Myron Boyler
  */
-public enum MediaFileType {
-
-  // ordering of list = ordering of type in GUI ;)
-
-  // @formatter:off
-  VIDEO, 
-  VIDEO_EXTRA, // bonus/extra videos
-  TRAILER, 
-  SAMPLE, // sample != trailer
-  AUDIO, 
-  SUBTITLE, 
-  NFO, 
-  POSTER, 
-  FANART, 
-  BANNER,
-  CLEARART,
-  DISCART,
-  LOGO,
-  THUMB,   
-  SEASON_POSTER,
-  EXTRAFANART, 
-  EXTRATHUMB,  
-  GRAPHIC,
-  TEXT, // various text infos, like BDinfo.txt or others...
-  UNKNOWN;
-  // @formatter:on
+public enum ScraperType {
+  TV_SHOW, MOVIE, ALBUM, ARTIST, MUSICVIDEO, LIBRARY;
 }

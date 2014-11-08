@@ -973,6 +973,7 @@ public class Movie extends MediaEntity {
 
       // update DB
       saveToDb();
+      MovieArtworkHelper.setArtwork(this, artwork);
     }
   }
 

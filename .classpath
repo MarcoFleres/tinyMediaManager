@@ -29,7 +29,7 @@
 	<classpathentry kind="lib" path="lib/jackson-databind.jar" sourcepath="/home/manuel/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.4.2/jackson-databind-2.4.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jna.jar"/>
 	<classpathentry kind="lib" path="lib/platform.jar"/>
-	<classpathentry kind="lib" path="lib/fanarttvapi.jar" sourcepath="buildsupport/fanarttvapi-1.4-sources.jar"/>
+	<classpathentry kind="lib" path="lib/fanarttvapi.jar" sourcepath="buildsupport/fanarttvapi-3.0-sources.jar"/>
 	<classpathentry kind="lib" path="lib/asm.jar"/>
 	<classpathentry kind="lib" path="lib/jmte-unbundled.jar"/>
 	<classpathentry kind="lib" path="lib/DJNativeSwing-SWT.jar"/>
