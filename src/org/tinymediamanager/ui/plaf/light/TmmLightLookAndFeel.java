@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 - 2013 Manuel Laggner
+ * Copyright 2012 - 2014 Manuel Laggner
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.jtattoo.plaf.AbstractIconFactory;
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.AbstractTheme;
 import com.jtattoo.plaf.BaseCheckBoxMenuItemUI;
-import com.jtattoo.plaf.BaseCheckBoxUI;
 import com.jtattoo.plaf.BaseDesktopPaneUI;
 import com.jtattoo.plaf.BaseEditorPaneUI;
 import com.jtattoo.plaf.BaseFileChooserUI;
@@ -36,11 +35,9 @@ import com.jtattoo.plaf.BaseLabelUI;
 import com.jtattoo.plaf.BaseMenuBarUI;
 import com.jtattoo.plaf.BaseMenuItemUI;
 import com.jtattoo.plaf.BaseMenuUI;
-import com.jtattoo.plaf.BasePasswordFieldUI;
 import com.jtattoo.plaf.BasePopupMenuUI;
 import com.jtattoo.plaf.BaseProgressBarUI;
 import com.jtattoo.plaf.BaseRadioButtonMenuItemUI;
-import com.jtattoo.plaf.BaseRadioButtonUI;
 import com.jtattoo.plaf.BaseRootPaneUI;
 import com.jtattoo.plaf.BaseScrollPaneUI;
 import com.jtattoo.plaf.BaseSeparatorUI;
@@ -48,7 +45,6 @@ import com.jtattoo.plaf.BaseSliderUI;
 import com.jtattoo.plaf.BaseSpinnerUI;
 import com.jtattoo.plaf.BaseSplitPaneUI;
 import com.jtattoo.plaf.BaseTextAreaUI;
-import com.jtattoo.plaf.BaseTextFieldUI;
 import com.jtattoo.plaf.BaseToggleButtonUI;
 import com.jtattoo.plaf.BaseToolTipUI;
 import com.jtattoo.plaf.JTattooUtilities;
@@ -207,9 +203,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "SeparatorUI", BaseSeparatorUI.class.getName(),
         "TextAreaUI", BaseTextAreaUI.class.getName(), 
         "EditorPaneUI", BaseEditorPaneUI.class.getName(), 
-        "PasswordFieldUI", BasePasswordFieldUI.class.getName(), 
-        "CheckBoxUI", BaseCheckBoxUI.class.getName(),
-        "RadioButtonUI", BaseRadioButtonUI.class.getName(), 
         "ToolTipUI", BaseToolTipUI.class.getName(), 
         "SliderUI", BaseSliderUI.class.getName(), 
         "ProgressBarUI", BaseProgressBarUI.class.getName(),
@@ -224,7 +217,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "RadioButtonMenuItemUI", BaseRadioButtonMenuItemUI.class.getName(), 
         "PopupMenuSeparatorUI", BaseSeparatorUI.class.getName(), 
         "DesktopPaneUI", BaseDesktopPaneUI.class.getName(),
-        "TextFieldUI", BaseTextFieldUI.class.getName(),
         "RootPaneUI", BaseRootPaneUI.class.getName(),
         
         // TmmLookAndFeel classes
@@ -236,6 +228,10 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "ComboBoxUI", TmmLightComboBoxUI.class.getName(),
         "TreeUI", TmmLightTreeUI.class.getName(),
         "ToolBarUI", TmmLightToolBarUI.class.getName(),
+        "TextFieldUI", TmmLightTextFieldUI.class.getName(),
+        "PasswordFieldUI", TmmLightPasswordFieldUI.class.getName(),
+        "CheckBoxUI", TmmLightCheckBoxUI.class.getName(),
+        "RadioButtonUI", TmmLightRadioButtonUI.class.getName(),
     };
     table.putDefaults(uiDefaults);
     // @formatter:on

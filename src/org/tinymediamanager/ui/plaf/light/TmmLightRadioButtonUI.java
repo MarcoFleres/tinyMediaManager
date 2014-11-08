@@ -15,35 +15,27 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import javax.swing.JComponent;
-import javax.swing.border.Border;
 import javax.swing.plaf.ComponentUI;
 
-import com.jtattoo.plaf.AbstractToolBarUI;
+import com.jtattoo.plaf.BaseRadioButtonUI;
 
-public class TmmLightToolBarUI extends AbstractToolBarUI {
+public class TmmLightRadioButtonUI extends BaseRadioButtonUI {
+  private static TmmLightRadioButtonUI radioButtonUI = null;
+
   public static ComponentUI createUI(JComponent c) {
-    return new TmmLightToolBarUI();
+    if (radioButtonUI == null) {
+      radioButtonUI = new TmmLightRadioButtonUI();
+    }
+    return radioButtonUI;
   }
 
   @Override
-  public Border getRolloverBorder() {
-    return TmmLightBorders.getRolloverToolButtonBorder();
-  }
+  protected void paintFocus(Graphics g, Rectangle t, Dimension d) {
 
-  @Override
-  public Border getNonRolloverBorder() {
-    return null;
-  }
-
-  @Override
-  public boolean isButtonOpaque() {
-    return false;
-  }
-
-  @Override
-  public void paint(Graphics g, JComponent c) {
   }
 }

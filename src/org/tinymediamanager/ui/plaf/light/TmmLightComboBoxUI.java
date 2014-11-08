@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 - 2013 Manuel Laggner
+ * Copyright 2012 - 2014 Manuel Laggner
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,18 @@
 package org.tinymediamanager.ui.plaf.light;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
 
 import com.jtattoo.plaf.BaseComboBoxUI;
@@ -44,14 +52,72 @@ public class TmmLightComboBoxUI extends BaseComboBoxUI {
   @Override
   public void installUI(JComponent c) {
     super.installUI(c);
-    this.comboBox.setRequestFocusEnabled(false);
+    if (comboBox.getEditor() != null) {
+      if (comboBox.getEditor().getEditorComponent() instanceof JTextField) {
+        ((JTextField) (comboBox.getEditor().getEditorComponent())).setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
+      }
+    }
+  }
+
+  @Override
+  public Dimension getPreferredSize(JComponent c) {
+    Dimension size = super.getPreferredSize(c);
+    return new Dimension(size.width + 2, size.height + 4);
+  }
+
+  @SuppressWarnings({ "unchecked" })
+  @Override
+  public void paintCurrentValue(Graphics g, Rectangle bounds, boolean hasFocus) {
+    @SuppressWarnings("rawtypes")
+    ListCellRenderer renderer = comboBox.getRenderer();
+    Component c;
+
+    if (hasFocus && !isPopupVisible(comboBox)) {
+      c = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(), -1, true, false);
+    }
+    else {
+      c = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(), -1, false, false);
+      c.setBackground(UIManager.getColor("ComboBox.background"));
+    }
+
+    c.setFont(comboBox.getFont());
+    if (hasFocus && !isPopupVisible(comboBox)) {
+      c.setForeground(listBox.getSelectionForeground());
+      c.setBackground(comboBox.getBackground());
+    }
+    else {
+      if (comboBox.isEnabled()) {
+        c.setForeground(comboBox.getForeground());
+        c.setBackground(comboBox.getBackground());
+      }
+      else {
+        c.setForeground(UIManager.getColor("ComboBox.disabledForeground", c.getLocale()));
+        c.setBackground(UIManager.getColor("ComboBox.disabledBackground", c.getLocale()));
+      }
+    }
+
+    // Fix for 4238829: should lay out the JPanel.
+    boolean shouldValidate = false;
+    if (c instanceof JPanel) {
+      shouldValidate = true;
+    }
+
+    int x = bounds.x, y = bounds.y, w = bounds.width, h = bounds.height;
+    if (padding != null) {
+      x = bounds.x + padding.left;
+      y = bounds.y + padding.top;
+      w = bounds.width - (padding.left + padding.right);
+      h = bounds.height - (padding.top + padding.bottom);
+    }
+
+    currentValuePane.paintComponent(g, c, comboBox, x, y, w, h, shouldValidate);
   }
 
   @Override
   protected void setButtonBorder() {
   }
 
-  public static class ArrowButton extends NoFocusButton {
+  private class ArrowButton extends NoFocusButton {
     private static final long serialVersionUID = -2765755741007665606L;
 
     @Override

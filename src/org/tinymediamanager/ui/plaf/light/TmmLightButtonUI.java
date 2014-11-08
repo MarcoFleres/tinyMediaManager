@@ -52,6 +52,8 @@ public class TmmLightButtonUI extends BaseButtonUI {
 
   private boolean      isFlatButton         = false;
 
+  private int          focusWidth           = 2;
+
   public static ComponentUI createUI(JComponent c) {
     return new TmmLightButtonUI();
   }
@@ -82,20 +84,26 @@ public class TmmLightButtonUI extends BaseButtonUI {
 
     int width = b.getWidth();
     int height = b.getHeight();
-    int borderRadius = b.getHeight();
+    int borderRadius = b.getHeight() - 2 * focusWidth;
 
-    Insets insets = b.getBorder().getBorderInsets(b);
-    int x = insets.left > 0 ? 1 : 0;
-    int y = insets.top > 0 ? 1 : 0;
-    int w = insets.right > 0 ? width - 1 : width;
-    int h = insets.bottom > 0 ? height - 1 : height;
+    int x = focusWidth;
+    int y = focusWidth;
+    int w = width - 2 * focusWidth;
+    int h = height - 2 * focusWidth;
 
     ButtonModel model = b.getModel();
 
     // draw the focus ring
     if ((b.isRolloverEnabled()) && (model.isRollover())) {
-      g2D.setColor(BUTTON_PRESS_COLOR);
-      g2D.fillRoundRect(x - 1, y - 1, w + 1, h + 1, borderRadius, borderRadius);
+      g2D.setColor(AbstractLookAndFeel.getFocusColor());
+      // g2D.fillRoundRect(x - 1, y - 1, w + 1, h + 1, borderRadius, borderRadius);
+      final Composite oldComposite = g2D.getComposite();
+      for (int i = focusWidth; i > 0; i -= 1) {
+        final float opacity = (float) (1 - (2.f * i * i / 10));
+        g2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+        g2D.fillRoundRect(x - i, y - i, w + 2 * i, h + 2 * i, borderRadius + i, borderRadius + i);
+      }
+      g2D.setComposite(oldComposite);
     }
 
     if ((model.isPressed()) && (model.isArmed())) {
@@ -105,7 +113,7 @@ public class TmmLightButtonUI extends BaseButtonUI {
       g2D.setColor(BUTTON_DEFAULT_COLOR);
     }
 
-    g2D.fillRoundRect(x + 1, y + 1, w - 3, h - 3, borderRadius, borderRadius);
+    g2D.fillRoundRect(x, y, w, h, borderRadius, borderRadius);
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
   }
 

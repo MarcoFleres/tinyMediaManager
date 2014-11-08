@@ -1,15 +1,34 @@
+/*
+ * Copyright 2012 - 2014 Manuel Laggner
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.tinymediamanager.ui.plaf.light;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JMenuBar;
 import javax.swing.JPopupMenu;
@@ -42,7 +61,10 @@ public class TmmLightBorders extends BaseBorders {
   }
 
   public static Border getComboBoxBorder() {
-    return getTextBorder();
+    if (comboBoxBorder == null) {
+      comboBoxBorder = new TextFieldBorder();
+    }
+    return comboBoxBorder;
   }
 
   public static Border getScrollPaneBorder() {
@@ -103,23 +125,44 @@ public class TmmLightBorders extends BaseBorders {
   // ------------------------------------------------------------------------------------
   public static class TextFieldBorder extends AbstractBorder implements UIResource {
     private static final long   serialVersionUID = -1476629322366320255L;
-    private static final Insets insets           = new Insets(2, 4, 2, 4);
+    private static final Insets insets           = new Insets(4, 6, 4, 6);
+
+    private static int          focusWidth       = 2;
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-      Graphics2D g2 = (Graphics2D) g.create();
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       int r = 10;
-      RoundRectangle2D round = new RoundRectangle2D.Float(x, y, width - 1, height - 1, r, r);
+      RoundRectangle2D round = new RoundRectangle2D.Float(x + focusWidth, y + focusWidth, width - 2 * focusWidth, height - 2 * focusWidth, r, r);
       Container parent = c.getParent();
       if (parent != null) {
+        GraphicsConfiguration gc = ((Graphics2D) g).getDeviceConfiguration();
+        BufferedImage img = gc.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+        Graphics2D g2 = img.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setComposite(AlphaComposite.Clear);
+        g2.fillRect(0, 0, width, height);
+
+        g2.setComposite(AlphaComposite.Src);
         g2.setColor(parent.getBackground());
         Area corner = new Area(new Rectangle2D.Float(x, y, width, height));
         corner.subtract(new Area(round));
         g2.fill(corner);
-      }
 
-      g2.dispose();
+        if (c.hasFocus()) {
+          x = focusWidth;
+          y = focusWidth;
+          int w = width - 2 * focusWidth;
+          int h = height - 2 * focusWidth;
+          g2.setColor(AbstractLookAndFeel.getFocusColor());
+          for (int i = focusWidth; i > 0; i -= 1) {
+            final float opacity = (float) (1 - (2.f * i * i / 10));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, opacity));
+            g2.fillRoundRect(x - i, y - i, w + 2 * i, h + 2 * i, r, r);
+          }
+        }
+        g2.dispose();
+        g.drawImage(img, 0, 0, null);
+      }
     }
 
     @Override

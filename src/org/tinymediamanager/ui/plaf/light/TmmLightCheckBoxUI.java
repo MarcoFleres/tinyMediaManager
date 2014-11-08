@@ -15,35 +15,23 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.awt.Graphics;
-
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
-import javax.swing.border.Border;
+import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
 
-import com.jtattoo.plaf.AbstractToolBarUI;
+public class TmmLightCheckBoxUI extends TmmLightRadioButtonUI {
+  private static TmmLightCheckBoxUI checkBoxUI = null;
 
-public class TmmLightToolBarUI extends AbstractToolBarUI {
-  public static ComponentUI createUI(JComponent c) {
-    return new TmmLightToolBarUI();
+  public static ComponentUI createUI(JComponent b) {
+    if (checkBoxUI == null) {
+      checkBoxUI = new TmmLightCheckBoxUI();
+    }
+    return checkBoxUI;
   }
 
-  @Override
-  public Border getRolloverBorder() {
-    return TmmLightBorders.getRolloverToolButtonBorder();
-  }
-
-  @Override
-  public Border getNonRolloverBorder() {
-    return null;
-  }
-
-  @Override
-  public boolean isButtonOpaque() {
-    return false;
-  }
-
-  @Override
-  public void paint(Graphics g, JComponent c) {
+  public void installDefaults(AbstractButton b) {
+    super.installDefaults(b);
+    icon = UIManager.getIcon("CheckBox.icon");
   }
 }
