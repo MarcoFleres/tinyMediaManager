@@ -45,7 +45,6 @@ import com.jtattoo.plaf.BaseSliderUI;
 import com.jtattoo.plaf.BaseSpinnerUI;
 import com.jtattoo.plaf.BaseSplitPaneUI;
 import com.jtattoo.plaf.BaseTextAreaUI;
-import com.jtattoo.plaf.BaseToggleButtonUI;
 import com.jtattoo.plaf.BaseToolTipUI;
 import com.jtattoo.plaf.JTattooUtilities;
 
@@ -199,7 +198,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
     Object[] uiDefaults = {
         // BaseLookAndFeel classes
         "LabelUI", BaseLabelUI.class.getName(), 
-        "ToggleButtonUI", BaseToggleButtonUI.class.getName(), 
         "SeparatorUI", BaseSeparatorUI.class.getName(),
         "TextAreaUI", BaseTextAreaUI.class.getName(), 
         "EditorPaneUI", BaseEditorPaneUI.class.getName(), 
@@ -225,6 +223,7 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "TabbedPaneUI", TmmLightTabbedPaneUI.class.getName(),
         "TableUI", TmmLightTableUI.class.getName(),
         "ButtonUI", TmmLightButtonUI.class.getName(),
+        "ToggleButtonUI", TmmLightToggleButtonUI.class.getName(),
         "ComboBoxUI", TmmLightComboBoxUI.class.getName(),
         "TreeUI", TmmLightTreeUI.class.getName(),
         "ToolBarUI", TmmLightToolBarUI.class.getName(),

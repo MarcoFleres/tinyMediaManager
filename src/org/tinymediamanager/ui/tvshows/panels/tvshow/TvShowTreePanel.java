@@ -1,6 +1,7 @@
 package org.tinymediamanager.ui.tvshows.panels.tvshow;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.util.ResourceBundle;
 
@@ -47,6 +48,7 @@ import com.jgoodies.forms.layout.RowSpec;
 
 public class TvShowTreePanel extends JPanel implements ITmmTabItem {
   private static final long           serialVersionUID = 5889203009864512935L;
+  /** @wbp.nls.resourceBundle messages */
   private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
 
   private JTree                       tree;
@@ -96,8 +98,14 @@ public class TvShowTreePanel extends JPanel implements ITmmTabItem {
 
     add(textField, "2, 1, fill, fill");
 
-    JToggleButton btnFilter = new JToggleButton(IconManager.FILTER);
+    final JToggleButton btnFilter = new JToggleButton("Filter");
     btnFilter.setToolTipText(BUNDLE.getString("movieextendedsearch.options")); //$NON-NLS-1$
+    btnFilter.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        TvShowUIModule.getInstance().setFilterMenuVisible(btnFilter.isSelected());
+      }
+    });
     add(btnFilter, "4, 1, default, bottom");
 
     JScrollPane scrollPane = new JScrollPane();

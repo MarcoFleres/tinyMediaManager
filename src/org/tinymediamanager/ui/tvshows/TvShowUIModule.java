@@ -20,6 +20,7 @@ import java.util.ResourceBundle;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
@@ -59,10 +60,15 @@ import org.tinymediamanager.ui.tvshows.panels.episode.TvShowEpisodeMediaInformat
 import org.tinymediamanager.ui.tvshows.panels.season.TvShowSeasonInformationPanel;
 import org.tinymediamanager.ui.tvshows.panels.season.TvShowSeasonMediaFilesPanel;
 import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowArtworkPanel;
+import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowExtendedSearchPanel;
 import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowInformationPanel;
 import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowMediaInformationPanel;
 import org.tinymediamanager.ui.tvshows.panels.tvshow.TvShowTreePanel;
 import org.tinymediamanager.ui.tvshows.settings.TvShowSettingsContainerPanel;
+
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 
 /**
  * the class TvShowUIModule - to handle the TV shows in the UI
@@ -70,30 +76,32 @@ import org.tinymediamanager.ui.tvshows.settings.TvShowSettingsContainerPanel;
  * @author Manuel Laggner
  */
 public class TvShowUIModule implements ITmmUIModule {
-  private final static ResourceBundle BUNDLE   = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
-  private final static String         ID       = "tvShows";
-  private static TvShowUIModule       instance = null;
+  private final static ResourceBundle     BUNDLE   = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
+  private final static String             ID       = "tvShows";
+  private static TvShowUIModule           instance = null;
 
-  final TvShowSelectionModel          tvShowSelectionModel;
-  final TvShowSeasonSelectionModel    tvShowSeasonSelectionModel;
-  final TvShowEpisodeSelectionModel   tvShowEpisodeSelectionModel;
+  final TvShowSelectionModel              tvShowSelectionModel;
+  final TvShowSeasonSelectionModel        tvShowSeasonSelectionModel;
+  final TvShowEpisodeSelectionModel       tvShowEpisodeSelectionModel;
 
-  private final JPanel                settingsPanel;
-  private final TvShowTreePanel       listPanel;
-  private final JPanel                detailPanel;
-  private final JTabbedPane           tvShowDetailPanel;
-  private final JTabbedPane           tvShowSeasonDetailPanel;
-  private final JTabbedPane           tvShowEpisodeDetailPanel;
+  private final JPanel                    settingsPanel;
+  private final TvShowTreePanel           listPanel;
+  private final JPanel                    detailPanel;
+  private final JTabbedPane               tvShowDetailPanel;
+  private final JTabbedPane               tvShowSeasonDetailPanel;
+  private final JTabbedPane               tvShowEpisodeDetailPanel;
+  private final JPanel                    dataPanel;
+  private final TvShowExtendedSearchPanel filterPanel;
 
-  private Action                      searchAction;
-  private Action                      editAction;
-  private Action                      updateAction;
-  private Action                      exportAction;
+  private Action                          searchAction;
+  private Action                          editAction;
+  private Action                          updateAction;
+  private Action                          exportAction;
 
-  private JPopupMenu                  popupMenu;
-  private JPopupMenu                  updatePopupMenu;
-  private JPopupMenu                  scrapePopupMenu;
-  private JPopupMenu                  editPopupMenu;
+  private JPopupMenu                      popupMenu;
+  private JPopupMenu                      updatePopupMenu;
+  private JPopupMenu                      scrapePopupMenu;
+  private JPopupMenu                      editPopupMenu;
 
   private TvShowUIModule() {
     tvShowSelectionModel = new TvShowSelectionModel();
@@ -103,27 +111,45 @@ public class TvShowUIModule implements ITmmUIModule {
     listPanel = new TvShowTreePanel(tvShowSelectionModel);
 
     detailPanel = new JPanel();
-    detailPanel.setLayout(new CardLayout());
+    detailPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow") }, new RowSpec[] { RowSpec.decode("default:grow") }));
+
+    // layeredpane for displaying the filter dialog at the top
+    JLayeredPane layeredPane = new JLayeredPane();
+    layeredPane.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default"), ColumnSpec.decode("default:grow") }, new RowSpec[] {
+        RowSpec.decode("default"), RowSpec.decode("default:grow") }));
+    detailPanel.add(layeredPane, "1, 1, fill, fill");
+
+    dataPanel = new JPanel();
+    dataPanel.setLayout(new CardLayout());
 
     // panel for TV shows
     tvShowDetailPanel = new MainTabbedPane();
     tvShowDetailPanel.add(BUNDLE.getString("metatag.details"), new TvShowInformationPanel(tvShowSelectionModel));//$NON-NLS-1$
     tvShowDetailPanel.add(BUNDLE.getString("metatag.mediafiles"), new TvShowMediaInformationPanel(tvShowSelectionModel));//$NON-NLS-1$
     tvShowDetailPanel.add(BUNDLE.getString("metatag.artwork"), new TvShowArtworkPanel(tvShowSelectionModel)); //$NON-NLS-1$
-    detailPanel.add(tvShowDetailPanel, "tvShow");
+    dataPanel.add(tvShowDetailPanel, "tvShow");
 
     // panel for seasons
     tvShowSeasonDetailPanel = new MainTabbedPane();
     tvShowSeasonDetailPanel.add(BUNDLE.getString("metatag.details"), new TvShowSeasonInformationPanel(tvShowSeasonSelectionModel));//$NON-NLS-1$
     tvShowSeasonDetailPanel.add(BUNDLE.getString("metatag.mediafiles"), new TvShowSeasonMediaFilesPanel(tvShowSeasonSelectionModel)); //$NON-NLS-1$
     // tvShowSeasonDetailPanel.add("Media Information", new TvShowSeasonMediaInformationPanel(tvShowSeasonSelectionModel));
-    detailPanel.add(tvShowSeasonDetailPanel, "tvShowSeason");
+    dataPanel.add(tvShowSeasonDetailPanel, "tvShowSeason");
 
     // panel for episodes
     tvShowEpisodeDetailPanel = new MainTabbedPane();
     tvShowEpisodeDetailPanel.add(BUNDLE.getString("metatag.details"), new TvShowEpisodeInformationPanel(tvShowEpisodeSelectionModel));//$NON-NLS-1$
     tvShowEpisodeDetailPanel.add(BUNDLE.getString("metatag.mediafiles"), new TvShowEpisodeMediaInformationPanel(tvShowEpisodeSelectionModel));//$NON-NLS-1$
-    detailPanel.add(tvShowEpisodeDetailPanel, "tvShowEpisode");
+    dataPanel.add(tvShowEpisodeDetailPanel, "tvShowEpisode");
+
+    layeredPane.add(dataPanel, "1, 1, 2, 2, fill, fill");
+    layeredPane.setLayer(dataPanel, 0);
+
+    // glass pane for searching/filtering
+    filterPanel = new TvShowExtendedSearchPanel(listPanel.getTree());
+    filterPanel.setVisible(false);
+    layeredPane.add(filterPanel, "1, 1, fill, fill");
+    layeredPane.setLayer(filterPanel, 1);
 
     // create actions and menus
     createActions();
@@ -137,6 +163,10 @@ public class TvShowUIModule implements ITmmUIModule {
       instance = new TvShowUIModule();
     }
     return instance;
+  }
+
+  public void setFilterMenuVisible(boolean visible) {
+    filterPanel.setVisible(visible);
   }
 
   @Override
@@ -296,8 +326,8 @@ public class TvShowUIModule implements ITmmUIModule {
    */
   public void setSelectedTvShow(TvShow tvShow) {
     tvShowSelectionModel.setSelectedTvShow(tvShow);
-    CardLayout cl = (CardLayout) (detailPanel.getLayout());
-    cl.show(detailPanel, "tvShow");
+    CardLayout cl = (CardLayout) (dataPanel.getLayout());
+    cl.show(dataPanel, "tvShow");
   }
 
   /**
@@ -308,8 +338,8 @@ public class TvShowUIModule implements ITmmUIModule {
    */
   public void setSelectedTvShowSeason(TvShowSeason tvShowSeason) {
     tvShowSeasonSelectionModel.setSelectedTvShowSeason(tvShowSeason);
-    CardLayout cl = (CardLayout) (detailPanel.getLayout());
-    cl.show(detailPanel, "tvShowSeason");
+    CardLayout cl = (CardLayout) (dataPanel.getLayout());
+    cl.show(dataPanel, "tvShowSeason");
   }
 
   /**
@@ -320,7 +350,7 @@ public class TvShowUIModule implements ITmmUIModule {
    */
   public void setSelectedTvShowEpisode(TvShowEpisode tvShowEpisode) {
     tvShowEpisodeSelectionModel.setSelectedTvShowEpisode(tvShowEpisode);
-    CardLayout cl = (CardLayout) (detailPanel.getLayout());
-    cl.show(detailPanel, "tvShowEpisode");
+    CardLayout cl = (CardLayout) (dataPanel.getLayout());
+    cl.show(dataPanel, "tvShowEpisode");
   }
 }

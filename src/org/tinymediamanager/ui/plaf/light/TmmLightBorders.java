@@ -228,12 +228,11 @@ public class TmmLightBorders extends BaseBorders {
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
-      Color titleColor = AbstractLookAndFeel.getWindowTitleColorLight();
       Color borderColor = AbstractLookAndFeel.getWindowBorderColor();
-      g.setColor(titleColor);
-      g.fillRect(x, y + 1, w, insets.top - 1);
-      g.setColor(borderColor);
+      g.setColor(Color.BLACK);
       g.fillRect(x, y, w, h);
+      g.setColor(borderColor);
+      g.fillRect(x + 1, y + 1, w - 2, h - 2);
     }
   } // class InternalFrameBorder
 

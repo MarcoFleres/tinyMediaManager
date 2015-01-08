@@ -19,6 +19,7 @@ import java.util.ResourceBundle;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
@@ -50,46 +51,70 @@ import org.tinymediamanager.ui.movies.actions.MovieUpdateDatasourceAction;
 import org.tinymediamanager.ui.movies.actions.MovieUpdateSingleDatasourceAction;
 import org.tinymediamanager.ui.movies.panels.MovieArtworkPanel;
 import org.tinymediamanager.ui.movies.panels.MovieCastPanel;
+import org.tinymediamanager.ui.movies.panels.MovieExtendedSearchPanel;
 import org.tinymediamanager.ui.movies.panels.MovieInformationPanel;
 import org.tinymediamanager.ui.movies.panels.MovieListPanel;
 import org.tinymediamanager.ui.movies.panels.MovieMediaInformationPanel;
 import org.tinymediamanager.ui.movies.panels.MovieTrailerPanel;
 import org.tinymediamanager.ui.movies.settings.MovieSettingsContainerPanel;
 
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+
 /**
  * @author Manuel Laggner
  * 
  */
 public class MovieUIModule implements ITmmUIModule {
-  private final static ResourceBundle BUNDLE   = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
-  private final static String         ID       = "movies";
-  private static MovieUIModule        instance = null;
+  private final static ResourceBundle    BUNDLE   = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
+  private final static String            ID       = "movies";
+  private static MovieUIModule           instance = null;
 
-  private final MovieListPanel        listPanel;
-  private final JTabbedPane           detailPanel;
-  private final JPanel                settingsPanel;
+  private final MovieListPanel           listPanel;
+  private final JPanel                   detailPanel;
+  private final JPanel                   settingsPanel;
+  private final MovieExtendedSearchPanel filterPanel;
 
-  private final MovieSelectionModel   selectionModel;
+  private final MovieSelectionModel      selectionModel;
 
-  private Action                      searchAction;
-  private Action                      editAction;
-  private Action                      updateAction;
+  private Action                         searchAction;
+  private Action                         editAction;
+  private Action                         updateAction;
 
-  private JPopupMenu                  popupMenu;
-  private JPopupMenu                  updatePopupMenu;
-  private JPopupMenu                  searchPopupMenu;
-  private JPopupMenu                  editPopupMenu;
+  private JPopupMenu                     popupMenu;
+  private JPopupMenu                     updatePopupMenu;
+  private JPopupMenu                     searchPopupMenu;
+  private JPopupMenu                     editPopupMenu;
 
   private MovieUIModule() {
     listPanel = new MovieListPanel();
     selectionModel = listPanel.getSelectionModel();
 
-    detailPanel = new MainTabbedPane();
-    detailPanel.addTab("Details", new MovieInformationPanel(selectionModel));
-    detailPanel.addTab("Cast", new MovieCastPanel(selectionModel));
-    detailPanel.addTab("Media files", new MovieMediaInformationPanel(selectionModel));
-    detailPanel.addTab("Artwork", new MovieArtworkPanel(selectionModel));
-    detailPanel.addTab("Trailer", new MovieTrailerPanel(selectionModel));
+    detailPanel = new JPanel();
+    detailPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow") }, new RowSpec[] { RowSpec.decode("default:grow") }));
+
+    // layeredpane for displaying the filter dialog at the top
+    JLayeredPane layeredPane = new JLayeredPane();
+    layeredPane.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default"), ColumnSpec.decode("default:grow") }, new RowSpec[] {
+        RowSpec.decode("default"), RowSpec.decode("default:grow") }));
+    detailPanel.add(layeredPane, "1, 1, fill, fill");
+
+    // tabbed pane containing the movie data
+    JTabbedPane tabbedPane = new MainTabbedPane();
+    tabbedPane.addTab("Details", new MovieInformationPanel(selectionModel));
+    tabbedPane.addTab("Cast", new MovieCastPanel(selectionModel));
+    tabbedPane.addTab("Media files", new MovieMediaInformationPanel(selectionModel));
+    tabbedPane.addTab("Artwork", new MovieArtworkPanel(selectionModel));
+    tabbedPane.addTab("Trailer", new MovieTrailerPanel(selectionModel));
+    layeredPane.add(tabbedPane, "1, 1, 2, 2, fill, fill");
+    layeredPane.setLayer(tabbedPane, 0);
+
+    // glass pane for searching/filtering
+    filterPanel = new MovieExtendedSearchPanel(selectionModel);
+    filterPanel.setVisible(false);
+    layeredPane.add(filterPanel, "1, 1, fill, fill");
+    layeredPane.setLayer(filterPanel, 1);
 
     listPanel.setInitialSelection();
     settingsPanel = new MovieSettingsContainerPanel();
@@ -179,6 +204,10 @@ public class MovieUIModule implements ITmmUIModule {
     editPopupMenu.add(new MovieRenameAction(true));
     editPopupMenu.add(new MovieRenamePreviewAction());
     editPopupMenu.add(new MovieMediaInformationAction(true));
+  }
+
+  public void setFilterMenuVisible(boolean visible) {
+    filterPanel.setVisible(visible);
   }
 
   @Override

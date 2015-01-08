@@ -15,15 +15,18 @@
  */
 package org.tinymediamanager.ui.movies.panels;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.util.ResourceBundle;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -35,6 +38,7 @@ import org.tinymediamanager.ui.ITmmTabItem;
 import org.tinymediamanager.ui.ITmmUIModule;
 import org.tinymediamanager.ui.IconHeaderRenderer;
 import org.tinymediamanager.ui.IconManager;
+import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.JSearchTextField;
 import org.tinymediamanager.ui.components.TmmTable;
 import org.tinymediamanager.ui.movies.MovieComparator;
@@ -63,13 +67,15 @@ import com.jgoodies.forms.layout.RowSpec;
  * 
  */
 public class MovieListPanel extends JPanel implements ITmmTabItem {
-  private static final long serialVersionUID = -1681460428331929420L;
+  private static final long           serialVersionUID = -1681460428331929420L;
+  /** @wbp.nls.resourceBundle messages */
+  private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
 
-  MovieSelectionModel       selectionModel;
+  MovieSelectionModel                 selectionModel;
 
-  private JTextField        searchField;
-  private JTable            movieTable;
-  private JLabel            lblMovieCountFiltered;
+  private JTextField                  searchField;
+  private JTable                      movieTable;
+  private JLabel                      lblMovieCountFiltered;
 
   public MovieListPanel() {
     putClientProperty("class", "roundedPanel");
@@ -153,7 +159,14 @@ public class MovieListPanel extends JPanel implements ITmmTabItem {
   }
 
   private void buildStatusPanel() {
-    JButton btnExtendedFilter = new JButton("extended Filter");
+    final JToggleButton btnExtendedFilter = new JToggleButton("Filter");
+    btnExtendedFilter.setToolTipText(BUNDLE.getString("movieextendedsearch.options")); //$NON-NLS-1$
+    btnExtendedFilter.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        MovieUIModule.getInstance().setFilterMenuVisible(btnExtendedFilter.isSelected());
+      }
+    });
     add(btnExtendedFilter, "4, 1, fill, fill");
     JPanel panelStatus = new JPanel();
     add(panelStatus, "2, 4");
