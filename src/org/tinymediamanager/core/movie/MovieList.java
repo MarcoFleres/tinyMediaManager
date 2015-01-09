@@ -54,6 +54,7 @@ import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.scraper.IMediaArtworkProvider;
 import org.tinymediamanager.scraper.IMediaMetadataProvider;
 import org.tinymediamanager.scraper.IMediaTrailerProvider;
+import org.tinymediamanager.scraper.MediaLanguages;
 import org.tinymediamanager.scraper.MediaSearchOptions;
 import org.tinymediamanager.scraper.MediaSearchOptions.SearchParam;
 import org.tinymediamanager.scraper.MediaSearchResult;
@@ -63,6 +64,7 @@ import org.tinymediamanager.scraper.hdtrailersnet.HDTrailersNet;
 import org.tinymediamanager.scraper.imdb.ImdbMetadataProvider;
 import org.tinymediamanager.scraper.moviemeternl.MoviemeterMetadataProvider;
 import org.tinymediamanager.scraper.ofdb.OfdbMetadataProvider;
+import org.tinymediamanager.scraper.rottentomatoes.RottenTomatoesMetadataProvider;
 import org.tinymediamanager.scraper.tmdb.TmdbMetadataProvider;
 import org.tinymediamanager.scraper.zelluloid.ZelluloidMetadataProvider;
 
@@ -441,7 +443,7 @@ public class MovieList extends AbstractModelObject {
   }
 
   /**
-   * Search movie.
+   * Search for a movie with the default settings.
    * 
    * @param searchTerm
    *          the search term
@@ -452,6 +454,23 @@ public class MovieList extends AbstractModelObject {
    * @return the list
    */
   public List<MediaSearchResult> searchMovie(String searchTerm, Movie movie, IMediaMetadataProvider metadataProvider) {
+    return searchMovie(searchTerm, movie, metadataProvider, MovieModuleManager.MOVIE_SETTINGS.getScraperLanguage());
+  }
+
+  /**
+   * Search movie with the chosen language.
+   * 
+   * @param searchTerm
+   *          the search term
+   * @param movie
+   *          the movie
+   * @param metadataProvider
+   *          the metadata provider
+   * @param language
+   *          the language to search with
+   * @return the list
+   */
+  public List<MediaSearchResult> searchMovie(String searchTerm, Movie movie, IMediaMetadataProvider metadataProvider, MediaLanguages langu) {
     List<MediaSearchResult> sr = null;
 
     try {
@@ -463,7 +482,7 @@ public class MovieList extends AbstractModelObject {
       boolean idFound = false;
       // set what we have, so the provider could chose from all :)
       MediaSearchOptions options = new MediaSearchOptions(MediaType.MOVIE);
-      options.set(SearchParam.LANGUAGE, MovieModuleManager.MOVIE_SETTINGS.getScraperLanguage().name());
+      options.set(SearchParam.LANGUAGE, langu.name());
       options.set(SearchParam.COUNTRY, MovieModuleManager.MOVIE_SETTINGS.getCertificationCountry().getAlpha2());
       options.set(SearchParam.COLLECTION_INFO, Boolean.toString(Globals.settings.getMovieScraperMetadataConfig().isCollection()));
       options.set(SearchParam.IMDB_FOREIGN_LANGUAGE, Boolean.toString(MovieModuleManager.MOVIE_SETTINGS.isImdbScrapeForeignLanguage()));
@@ -656,6 +675,16 @@ public class MovieList extends AbstractModelObject {
         metadataProvider = new ImdbMetadataProvider();
         break;
 
+      case ROTTENTOMATOES:
+        LOGGER.debug("get instance of RottenTomatoesMetadataProvider");
+        try {
+          metadataProvider = new RottenTomatoesMetadataProvider();
+        }
+        catch (Exception e) {
+          LOGGER.warn("failed to get instance of RottenTomatoesMetadataProvider", e);
+        }
+        break;
+
       case TMDB:
       default:
         LOGGER.debug("get instance of TmdbMetadataProvider");
@@ -711,6 +740,9 @@ public class MovieList extends AbstractModelObject {
     }
     else if (providerId.equals(Constants.ZELLULOIDID)) {
       return getMetadataProvider(MovieScrapers.ZELLULOID);
+    }
+    else if (providerId.equals(Constants.ROTTENTOMATOESID)) {
+      return getMetadataProvider(MovieScrapers.ROTTENTOMATOES);
     }
     else {
       // default

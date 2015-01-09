@@ -26,7 +26,7 @@
 	<classpathentry kind="lib" path="lib/resources.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-annotations.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-core.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-databind.jar" sourcepath="/home/manuel/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.4.2/jackson-databind-2.4.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind.jar"/>
 	<classpathentry kind="lib" path="lib/jna.jar"/>
 	<classpathentry kind="lib" path="lib/platform.jar"/>
 	<classpathentry kind="lib" path="lib/fanarttvapi.jar" sourcepath="buildsupport/fanarttvapi-3.0-sources.jar"/>
@@ -55,5 +55,6 @@
 	<classpathentry kind="lib" path="lib/image-viewer.jar"/>
 	<classpathentry kind="lib" path="lib/jgoodies-common.jar"/>
 	<classpathentry kind="lib" path="lib/h2.jar"/>
+    <classpathentry kind="lib" path="lib/rottentomatoesapi.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

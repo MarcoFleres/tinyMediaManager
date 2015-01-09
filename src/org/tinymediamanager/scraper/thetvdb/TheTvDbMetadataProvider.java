@@ -15,6 +15,7 @@
  */
 package org.tinymediamanager.scraper.thetvdb;
 
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import org.tinymediamanager.scraper.util.CachedUrl;
 import com.omertron.thetvdbapi.TheTVDBApi;
 import com.omertron.thetvdbapi.model.Actor;
 import com.omertron.thetvdbapi.model.Banner;
+import com.omertron.thetvdbapi.model.BannerType;
 import com.omertron.thetvdbapi.model.Banners;
 import com.omertron.thetvdbapi.model.Episode;
 import com.omertron.thetvdbapi.model.Series;
@@ -118,6 +120,8 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     String language = options.get(SearchParam.LANGUAGE);
     String country = options.get(SearchParam.COUNTRY); // for passing the country to the scrape
 
+    searchString = clearSearchString(searchString);
+
     // search via the api
     List<Series> series = null;
     synchronized (tvdb) {
@@ -177,6 +181,22 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     Collections.reverse(results);
 
     return results;
+  }
+
+  /*
+   * clear the search string to minimize search problem with the API
+   */
+  private String clearSearchString(String searchString) {
+
+    // replace all kinds of accent characters with their base variant
+    String cleanedString = Normalizer.normalize(searchString, Normalizer.Form.NFD);
+    cleanedString = cleanedString.replaceAll("\\p{M}", "");
+
+    // cleanedString = cleanedString.replaceAll("\\p{Punct}", ""); // too much?
+    // better: just keep chars which are not a-zA-Z0-9 AND the space and dash
+    cleanedString = cleanedString.replaceAll("[^\\p{Alnum}\\s\\-]", "");
+
+    return cleanedString;
   }
 
   private MediaSearchResult createSearchResult(Series show, MediaSearchOptions options, String searchString) {
@@ -299,6 +319,7 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
   public MediaMetadata getEpisodeMetadata(MediaScrapeOptions options) throws Exception {
     MediaMetadata md = new MediaMetadata(providerInfo.getId());
 
+    boolean useDvdOrder = false;
     String id = "";
 
     // id from result
@@ -325,8 +346,16 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
     int episodeNr = -1;
 
     try {
-      seasonNr = Integer.parseInt(options.getId(MediaMetadata.SEASON_NR));
-      episodeNr = Integer.parseInt(options.getId(MediaMetadata.EPISODE_NR));
+      String option = options.getId(MediaMetadata.SEASON_NR);
+      if (option != null) {
+        seasonNr = Integer.parseInt(options.getId(MediaMetadata.SEASON_NR));
+        episodeNr = Integer.parseInt(options.getId(MediaMetadata.EPISODE_NR));
+      }
+      else {
+        seasonNr = Integer.parseInt(options.getId(MediaMetadata.SEASON_NR_DVD));
+        episodeNr = Integer.parseInt(options.getId(MediaMetadata.EPISODE_NR_DVD));
+        useDvdOrder = true;
+      }
     }
     catch (Exception e) {
       LOGGER.warn("error parsing season/episode number");
@@ -351,9 +380,25 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
 
     // filter out the episode
     for (Episode ep : episodes) {
-      if (ep.getSeasonNumber() == seasonNr && ep.getEpisodeNumber() == episodeNr) {
-        episode = ep;
-        break;
+      if (useDvdOrder) {
+        try {
+          int s = Integer.parseInt(ep.getDvdSeason());
+
+          // TVDB provides the EP number as e.g. 2.0
+          int e = (int) Math.floor(Double.parseDouble(ep.getDvdEpisodeNumber()));
+          if (s == seasonNr && e == episodeNr) {
+            episode = ep;
+            break;
+          }
+        }
+        catch (Exception e) {
+        }
+      }
+      else {
+        if (ep.getSeasonNumber() == seasonNr && ep.getEpisodeNumber() == episodeNr) {
+          episode = ep;
+          break;
+        }
       }
     }
 
@@ -361,8 +406,18 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
       return md;
     }
 
-    md.storeMetadata(MediaMetadata.EPISODE_NR_DVD, episode.getDvdEpisodeNumber());
-    md.storeMetadata(MediaMetadata.SEASON_NR_DVD, episode.getDvdSeason());
+    md.storeMetadata(MediaMetadata.EPISODE_NR, episode.getEpisodeNumber());
+    md.storeMetadata(MediaMetadata.SEASON_NR, episode.getSeasonNumber());
+
+    // TVDB provides the EP number as e.g. 2.0
+    try {
+      int s = Integer.parseInt(episode.getDvdSeason());
+      int e = (int) Math.floor(Double.parseDouble(episode.getDvdEpisodeNumber()));
+      md.storeMetadata(MediaMetadata.EPISODE_NR_DVD, e);
+      md.storeMetadata(MediaMetadata.SEASON_NR_DVD, s);
+    }
+    catch (Exception e) {
+    }
     md.storeMetadata(MediaMetadata.EPISODE_NR_COMBINED, episode.getCombinedEpisodeNumber());
     md.storeMetadata(MediaMetadata.SEASON_NR_COMBINED, episode.getCombinedSeason());
     md.storeMetadata(MediaMetadata.ABSOLUTE_NR, episode.getAbsoluteNumber());
@@ -507,6 +562,11 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
           break;
 
         case season:
+          if (banner.getBannerType2() == BannerType.SeasonWide) {
+            // we do not use season wide banners at the moment
+            continue;
+          }
+
           ma.setType(MediaArtworkType.SEASON);
           ma.setSeason(banner.getSeason());
           break;
@@ -577,11 +637,15 @@ public class TheTvDbMetadataProvider implements ITvShowMetadataProvider, IMediaA
       MediaEpisode episode = new MediaEpisode(providerInfo.getId());
       episode.season = ep.getSeasonNumber();
       episode.episode = ep.getEpisodeNumber();
-      episode.dvdSeason = ep.getDvdSeason();
-      episode.dvdEpisode = ep.getDvdEpisodeNumber();
-      episode.combinedSeason = ep.getCombinedSeason();
-      episode.combinedEpisode = ep.getCombinedEpisodeNumber();
-      episode.absoluteNumber = ep.getAbsoluteNumber();
+      try {
+        episode.dvdSeason = Integer.parseInt(ep.getDvdSeason());
+        episode.dvdEpisode = Integer.parseInt(ep.getDvdEpisodeNumber());
+      }
+      catch (Exception e) {
+        episode.dvdSeason = -1;
+        episode.dvdEpisode = -1;
+      }
+
       episode.title = ep.getEpisodeName();
       episode.plot = ep.getOverview();
 

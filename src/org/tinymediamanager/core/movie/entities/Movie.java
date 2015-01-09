@@ -275,6 +275,22 @@ public class Movie extends MediaEntity {
     return this.trailer;
   }
 
+
+  /**
+   * Gets the trailers
+   * 
+   * @return the trailers
+   */
+  public List<MediaTrailer> getTrailer() {
+    return this.trailer;
+  }
+
+  /**
+   * Adds the trailer.
+   * 
+   * @param obj
+   *          the obj
+   */
   public void addTrailer(MediaTrailer obj) {
     trailer.add(obj);
     firePropertyChange(TRAILER, null, trailer);
@@ -1088,6 +1104,18 @@ public class Movie extends MediaEntity {
     String filename = "";
     switch (nfo) {
       case FILENAME_NFO:
+
+        if (isDisc()) {
+          // if NFO filename is activated, we generate them accordingly MF(1)
+          // but if disc, fixtate this
+          if (new File(path, "VIDEO_TS.ifo").exists() || new File(path, "VIDEO_TS").exists()) {
+            return "VIDEO_TS.nfo";
+          }
+          else {
+            // ohm... there is no official naming, lets write an index file...
+            return "index.nfo";
+          }
+        }
         String movieFilename = FilenameUtils.getBaseName(newMovieFilename);
         filename += movieFilename.isEmpty() ? "" : Utils.cleanStackingMarkers(movieFilename) + ".nfo"; // w/o stacking information
         break;

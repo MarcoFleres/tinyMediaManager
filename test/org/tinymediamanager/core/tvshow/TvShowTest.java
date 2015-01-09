@@ -64,11 +64,16 @@ public class TvShowTest {
 
   /**
    * Test TV renamer
+   * 
+   * @throws Exception
    */
   @Test
-  public void testRenamerParams() {
+  public void testRenamerParams() throws Exception {
     // setup dummy
     MediaFile dmf = new MediaFile(new File("/path/to", "video.avi"));
+
+    TmmModuleManager.getInstance().startUp();
+    TvShowModuleManager.getInstance().startUp();
 
     TvShow show = new TvShow();
     show.setTitle("showname");
@@ -92,24 +97,12 @@ public class TvShowTest {
     TvShowList.getInstance().addTvShow(show);
     // setup done
 
-    // parameters (global)
-    Globals.settings.getTvShowSettings().setRenamerAddSeason(true);
-    Globals.settings.getTvShowSettings().setRenamerAddShow(true);
-    Globals.settings.getTvShowSettings().setRenamerAddTitle(true);
-    Globals.settings.getTvShowSettings().setRenamerFormat(TvShowEpisodeNaming.WITH_SE);
-    Globals.settings.getTvShowSettings().setRenamerSeparator(".");
-
     // display renamed EP name :)
+    System.out.println(TvShowRenamer.createDestination(Globals.settings.getTvShowSettings().getRenamerFilename(), show, show.getEpisodes()));
     System.out.println(TvShowRenamer.generateFilename(show, dmf));
 
-    Globals.settings.getTvShowSettings().setRenamerAddTitle(false);
-    System.out.println(TvShowRenamer.generateFilename(show, dmf));
-
-    Globals.settings.getTvShowSettings().setRenamerAddShow(false);
-    System.out.println(TvShowRenamer.generateFilename(show, dmf));
-
-    Globals.settings.getTvShowSettings().setRenamerAddSeason(false);
-    System.out.println(TvShowRenamer.generateFilename(show, dmf));
+    TvShowModuleManager.getInstance().shutDown();
+    TmmModuleManager.getInstance().shutDown();
   }
 
   /**
@@ -118,6 +111,7 @@ public class TvShowTest {
   @Test
   public void testEpisodeMatching() {
     // detectEpisode("");
+    Assert.assertEquals("S:-1", detectEpisode(""));
 
     // ************************************************************************
     // various real world examples
@@ -141,6 +135,11 @@ public class TvShowTest {
     Assert.assertEquals("S:3 E:8", detectEpisode("Game of Thrones - 3x08 - Die Zweitgeborenen (Second sons)[1080p AAC-6ch de en].avi"));
     Assert.assertEquals("S:10 E:5", detectEpisode("Looney Tunes - 10x05 - Episodename"));
     Assert.assertEquals("S:1960 E:5", detectEpisode("Looney Tunes - 1960x05 - Episodename"));
+    Assert.assertEquals("S:4 E:1", detectEpisode("The Big Bang Theory_S04E01_31 Liebhaber, aufgerundet.m4v"));
+    Assert.assertEquals("S:1 E:2 E:4", detectEpisode("Shaun das Schaf - S01E02_1x04 - Badetag_Summen der Bienen.ts"));
+
+    // FIXME: TV test pattern which currently do not work...
+    // Assert.assertEquals("S:1 E:13 E:14 E:15", detectEpisode("Peter Pan S01E13_1x14_1x15 - El Hookato.ts")); // finds 1&13
 
     // ************************************************************************
     // 1-3 chars, if they are the ONLY numbers in file
@@ -220,7 +219,7 @@ public class TvShowTest {
   private String detectEpisode(String name) {
     StringBuilder sb = new StringBuilder();
     // EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilename(new File(name));
-    EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(name, "");
+    EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilenameAlternative(name, "asdf[.*asdf");
     sb.append("S:");
     sb.append(result.season);
     for (int ep : result.episodes) {

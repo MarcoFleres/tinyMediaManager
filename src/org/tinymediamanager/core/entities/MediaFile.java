@@ -248,7 +248,9 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
         return MediaFileType.TRAILER;
       }
 
-      if (name.contains("sample") || foldername.contains("sample")) {
+      // we have some false positives too - make a more precise check
+      if (basename.matches("(?i).*[_.-]sample$") // end with sample
+          || foldername.equalsIgnoreCase("sample")) { // sample folder name
         return MediaFileType.SAMPLE;
       }
 
@@ -698,30 +700,41 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
    * @return the audio codec
    */
   public String getAudioCodec() {
-    if (audioStreams.size() > 0) {
-      return audioStreams.get(0).getCodec();
+    String codec = "";
+
+    // get audio stream with highest channel count
+    MediaFileAudioStream highestStream = getBestAudioStream();
+    if (highestStream != null) {
+      codec = highestStream.getCodec();
     }
-    return "";
+
+    return codec;
+  }
+
+  private MediaFileAudioStream getBestAudioStream() {
+    MediaFileAudioStream highestStream = null;
+    for (MediaFileAudioStream stream : audioStreams) {
+      if (highestStream == null) {
+        highestStream = stream;
+      }
+      else if (highestStream.getChannelsAsInt() < stream.getChannelsAsInt()) {
+        highestStream = stream;
+      }
+    }
+    return highestStream;
   }
 
   public String getAudioLanguage() {
-    if (audioStreams.size() > 0) {
-      return audioStreams.get(0).getLanguage();
-    }
-    return "";
-  }
+    String language = "";
 
-  // /**
-  // * Sets the audio codec.
-  // *
-  // * @param newValue
-  // * the new audio codec
-  // */
-  // public void setAudioCodec(String newValue) {
-  // String oldValue = this.audioCodec;
-  // this.audioCodec = newValue;
-  // firePropertyChange("audioCodec", oldValue, newValue);
-  // }
+    // get audio stream with highest channel count
+    MediaFileAudioStream highestStream = getBestAudioStream();
+    if (highestStream != null) {
+      language = highestStream.getLanguage();
+    }
+
+    return language;
+  }
 
   /**
    * returns the container format extensions (e.g. avi, mkv mka mks, OGG, etc.)
@@ -813,10 +826,15 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
   }
 
   public String getAudioChannels() {
-    if (audioStreams.size() > 0) {
-      return audioStreams.get(0).getChannels();
+    String channels = "";
+
+    // get audio stream with highest channel count
+    MediaFileAudioStream highestStream = getBestAudioStream();
+    if (highestStream != null) {
+      channels = highestStream.getChannels();
     }
-    return "";
+
+    return channels;
   }
 
   // /**
@@ -1153,7 +1171,22 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
         for (int i = 0; i < streams; i++) {
           MediaFileAudioStream stream = new MediaFileAudioStream();
           String audioCodec = getMediaInfo(StreamKind.Audio, i, "CodecID/Hint", "Format");
-          stream.setCodec(audioCodec.replaceAll("\\p{Punct}", ""));
+          audioCodec = audioCodec.replaceAll("\\p{Punct}", "");
+
+          String audioAddition = getMediaInfo(StreamKind.Audio, i, "Format_Profile");
+          if ("dts".equalsIgnoreCase(audioCodec) && StringUtils.isNotBlank(audioAddition)) {
+            if (audioAddition.contains("ES")) {
+              audioCodec = "DTS-ES";
+            }
+            if (audioAddition.contains("HRA")) {
+              audioCodec = "DTS-HRA";
+            }
+            if (audioAddition.contains("MA")) {
+              audioCodec = "DTS-MA";
+            }
+          }
+          stream.setCodec(audioCodec);
+
           String channels = getMediaInfo(StreamKind.Audio, i, "Channel(s)");
           stream.setChannels(StringUtils.isEmpty(channels) ? "" : channels + "ch");
           try {

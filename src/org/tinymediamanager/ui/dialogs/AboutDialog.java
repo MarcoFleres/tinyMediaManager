@@ -56,6 +56,7 @@ import com.jgoodies.forms.layout.RowSpec;
  */
 public class AboutDialog extends TmmDialog {
   private static final long           serialVersionUID = 2298570526828925319L;
+  /** @wbp.nls.resourceBundle messages */
   private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
   private static final Logger         LOGGER           = LoggerFactory.getLogger(AboutDialog.class);
 
@@ -151,11 +152,12 @@ public class AboutDialog extends TmmDialog {
       contentPanel.add(lblMatthewSandersFor, "6, 22");
     }
     {
-      JLabel lblXzener = new JLabel("Our translators: xsintive, kriss1981, Joostzilla, zbynek.fiala, carlosmarchi,");
+      JLabel lblXzener = new JLabel("Our translators: Joostzilla, Zagoslav, zbynek.fiala, roliverosc, roandr, julienbloch, nerve, carlosmarchi, ");
       contentPanel.add(lblXzener, "6, 24");
     }
     {
-      JLabel lblXzener = new JLabel("                              zagoslav, piodio, roliverosc, Peppe_sr, roandr, sxczmnb");
+      JLabel lblXzener = new JLabel(
+          "                              otefenli, sxczmnb, piodio, peppe_sr, szobidani, kriss1981, mrj, xsintive, Gam, ppanhh");
       contentPanel.add(lblXzener, "6, 26");
     }
     {

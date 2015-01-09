@@ -119,7 +119,7 @@
             <entry key="date" value="${today}" />
         </propertyfile>
     </target>
-	
+  
     <target name="setNightly" if="nightly">
         <property name="rev" value="nightly" />
     </target>
@@ -134,7 +134,7 @@
 
     <target name="downloadLocales">
         <antcall target="downloadLocale"><param name="lang" value="cs"/></antcall>
-        <antcall target="downloadLocale"><param name="lang" value="da"/></antcall>
+        <!--<antcall target="downloadLocale"><param name="lang" value="da"/></antcall>-->
         <antcall target="downloadLocale"><param name="lang" value="de"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="es"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="fr"/></antcall>
@@ -143,10 +143,10 @@
         <antcall target="downloadLocale"><param name="lang" value="ko"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="nl"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="no"/></antcall>
-        <antcall target="downloadLocale"><param name="lang" value="pl"/></antcall>
+        <!--<antcall target="downloadLocale"><param name="lang" value="pl"/></antcall>-->
         <antcall target="downloadLocale"><param name="lang" value="pt"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="ru"/></antcall>
-        <antcall target="downloadLocale"><param name="lang" value="ro"/></antcall>
+        <!--<antcall target="downloadLocale"><param name="lang" value="ro"/></antcall>-->
         <antcall target="downloadLocale"><param name="lang" value="sk"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="sv"/></antcall>
         <antcall target="downloadLocale"><param name="lang" value="tr"/></antcall>
@@ -154,12 +154,21 @@
         <antcall target="downloadLocale"><param name="lang" value="zh"/></antcall>
     </target>
 
-    <target name='package-app' description="builds the packages" depends='create_tmm_jar'>
+    <target name='package-app' description="builds the packages" depends='create_tmm_jar, downloadLocales'>
         <!-- default files, to include in dist -->
         <copy file="objectdb.conf" todir="${build.dir}" />
         <copy file="changelog.txt" todir="${build.dir}"/>
         <copy file="AppBundler/getdown.jar" todir="${build.dir}" />
         <copy file="AppBundler/${getdown}" tofile="${build.dir}/getdown.txt" />
+        <copy todir="${build.dir}/native">
+             <fileset dir="native"/>
+         </copy>
+         <copy todir="${build.dir}/templates">
+             <fileset dir="templates"/>
+         </copy>
+         <copy todir="${build.dir}/locale">
+             <fileset dir="locale"/>
+         </copy>
         <replace file="${build.dir}/getdown.txt" token="%SVNREV%" value="${svn.info.revision}"/>
 
         <pathconvert property="gd.code" refid="classpath.default" pathsep="">
@@ -215,17 +224,21 @@
                     bundleid="org.tinyMediaManager.tinymediamanager" infostring="tinyMediaManager" 
                     jvmversion="1.6+" shortname="tMM" workingdirectory="$JAVAROOT" 
                     vmoptions="">
-        <jarfileset dir="${build.dir}">
+          <jarfileset dir="${build.dir}">
             <include name="**/*" />
-        </jarfileset>
+          	<exclude name="native/windows*/**" />
+          	<exclude name="native/linux*/**" />
+          </jarfileset>
         </jarbundler>
         <copy file="AppBundler/JavaApplicationStub.new" tofile="${dist.dir}/mac/tinyMediaManager.app/Contents/MacOS/JavaApplicationStub" />
         <chmod file="${dist.dir}/mac/tinyMediaManager.app/Contents/MacOS/JavaApplicationStub" perm="ugo+rx" />
         <copy file="AppBundler/tinyMediaManagerOSX.sh" tofile="${dist.dir}/mac/tinyMediaManager.app/Contents/Resources/Java/tinyMediaManagerOSX.sh" />
         <chmod file="${dist.dir}/mac/tinyMediaManager.app/Contents/Resources/Java/tinyMediaManagerOSX.sh" perm="ugo+rx" />
+      	
         <zip destfile="${dist.dir}/tmm_${version}_r${svn.info.revision}_mac.zip" level="9">
-            <zipfileset filemode="755" dir="${dist.dir}/mac" includes="tinyMediaManager.app/**/*" />
-        </zip>
+            <zipfileset dir="${dist.dir}/mac" excludes="**/JavaApplicationStub,**/tinyMediaManagerOSX.sh" />
+            <zipfileset filemode="755" dir="${dist.dir}/mac" includes="**/JavaApplicationStub,**/tinyMediaManagerOSX.sh" />
+        </zip> 
 
         <!-- Windows -->
         <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" 
@@ -237,7 +250,7 @@
         <launch4j configFile="./AppBundler/launch4jcmd.xml" txtProductVersion="${version}_r${svn.info.revision}"
                   outfile="${dist.dir}/tinyMediaManagerCMD.exe"/>
         <zip destfile="${dist.dir}/tmm_${version}_r${svn.info.revision}_win.zip" level="9">
-            <zipfileset filemode="755" dir="${build.dir}" excludes="env.txt" />
+            <zipfileset filemode="755" dir="${build.dir}" excludes="env.txt, native/linux*/**, native/mac*/**" />
             <zipfileset filemode="755" dir="${dist.dir}" includes="*.exe"/>
         </zip>
 
@@ -248,22 +261,12 @@
         <chmod file="${dist.dir}/tinyMediaManager.sh" perm="ugo+rx" />
         <chmod file="${dist.dir}/tinyMediaManagerUpdater.sh" perm="ugo+rx" />
         <chmod file="${dist.dir}/tinyMediaManagerCMD.sh" perm="ugo+rx" />
-        <tar destfile="${dist.dir}/tmm_${version}_r${svn.info.revision}_linux.tar" >
-            <tarfileset dir="${build.dir}" excludes="env.txt"/>
-            <tarfileset dir="${dist.dir}" includes="*.sh"/>
+        <tar compression="gzip" destfile="${dist.dir}/tmm_${version}_r${svn.info.revision}_linux.tar.gz" >
+            <tarfileset dir="${build.dir}" excludes="env.txt, native/windows*/**, native/mac*/**"/>
+            <tarfileset filemode="755" dir="${dist.dir}" includes="*.sh"/>
         </tar>
-        <gzip destfile="${dist.dir}/tmm_${version}_r${svn.info.revision}_linux.tar.gz" src="${dist.dir}/tmm_${version}_r${svn.info.revision}_linux.tar" />
 
         <!-- default files, NOT to include in dist, but in getdown updater -->
-        <copy todir="${build.dir}/native">
-            <fileset dir="native"/>
-        </copy>
-        <copy todir="${build.dir}/templates">
-            <fileset dir="templates"/>
-        </copy>
-        <copy todir="${build.dir}/locale">
-            <fileset dir="locale"/>
-        </copy>
         <copy file="${dist.dir}/tinyMediaManager.exe" tofile="${build.dir}/tinyMediaManager.new" />
         <copy file="${dist.dir}/tinyMediaManagerUpd.exe" tofile="${build.dir}/tinyMediaManagerUpd.new" />
         <copy file="${dist.dir}/tinyMediaManagerCMD.exe" tofile="${build.dir}/tinyMediaManagerCMD.new" />

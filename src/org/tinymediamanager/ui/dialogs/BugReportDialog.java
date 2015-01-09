@@ -47,6 +47,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.StringBody;
@@ -73,6 +74,7 @@ import com.jgoodies.forms.layout.RowSpec;
  */
 public class BugReportDialog extends TmmDialog {
   private static final long           serialVersionUID = 1992385114573899815L;
+  /** @wbp.nls.resourceBundle messages */
   private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control()); //$NON-NLS-1$
   private static final Logger         LOGGER           = LoggerFactory.getLogger(BugReportDialog.class);
 
@@ -191,6 +193,7 @@ public class BugReportDialog extends TmmDialog {
 
           MultipartEntity mpEntity = new MultipartEntity(HttpMultipartMode.STRICT);
           mpEntity.addPart("message", new StringBody(message.toString(), Charset.forName("UTF-8")));
+          mpEntity.addPart("sender", new StringBody(tfEmail.getText(), ContentType.TEXT_PLAIN));
 
           // attach files
           if (chckbxLogs.isSelected() || chckbxConfigxml.isSelected() /*

@@ -59,46 +59,42 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Manuel Laggner
  */
 public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpisode> {
-  private static final Logger LOGGER          = LoggerFactory.getLogger(TvShowEpisode.class);
+  private static final Logger LOGGER     = LoggerFactory.getLogger(TvShowEpisode.class);
 
   @JsonProperty
-  private int                 episode         = 0;
+  private int                 episode    = -1;
   @JsonProperty
-  private int                 season          = -1;
+  private int                 season     = -1;
   @JsonProperty
-  public String               dvdSeason       = "";
+  private int                 dvdSeason  = -1;
   @JsonProperty
-  public String               dvdEpisode      = "";
+  private int                 dvdEpisode = -1;
   @JsonProperty
-  public String               combinedSeason  = "";                                          // ???
+  private Date                firstAired = null;
   @JsonProperty
-  public String               combinedEpisode = "";                                          // ???
+  private String              director   = "";
   @JsonProperty
-  public String               absoluteNumber  = "";
+  private String              writer     = "";
   @JsonProperty
-  private Date                firstAired      = null;
+  private boolean             disc       = false;
   @JsonProperty
-  private String              director        = "";
+  private boolean             watched    = false;
   @JsonProperty
-  private String              writer          = "";
+  private int                 votes      = 0;
   @JsonProperty
-  private boolean             disc            = false;
+  private boolean             subtitles  = false;
   @JsonProperty
-  private boolean             watched         = false;
+  private boolean             isDvdOrder = false;
   @JsonProperty
-  private int                 votes           = 0;
+  private List<TvShowActor>   actors     = new ArrayList<TvShowActor>();
   @JsonProperty
-  private boolean             subtitles       = false;
+  private List<String>        tags       = new ArrayList<String>(0);
   @JsonProperty
-  private List<TvShowActor>   actors          = new ArrayList<TvShowActor>();
-  @JsonProperty
-  private List<String>        tags            = new ArrayList<String>(0);
-  @JsonProperty
-  private UUID                tvShowId        = null;
+  private UUID                tvShowId   = null;
 
-  private TvShow              tvShow          = null;
+  private TvShow              tvShow     = null;
 
-  private boolean             newlyAdded      = false;
+  private boolean             newlyAdded = false;
 
   static {
     mediaFileComparator = new TvShowMediaFileComparator();
@@ -151,9 +147,14 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
 
     episode = source.episode;
     season = source.season;
+    dvdEpisode = source.dvdEpisode;
+    dvdSeason = source.dvdSeason;
+    isDvdOrder = source.isDvdOrder;
+
     if (source.firstAired != null) {
       firstAired = new Date(source.firstAired.getTime());
     }
+
     director = source.director;
     writer = source.writer;
     disc = source.disc;
@@ -163,21 +164,10 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     actors.addAll(source.actors);
   }
 
-  /**
-   * first aired date.
-   * 
-   * @return the date
-   */
   public Date getFirstAired() {
     return firstAired;
   }
 
-  /**
-   * sets the first aired date.
-   * 
-   * @param newValue
-   *          the new first aired
-   */
   @JsonIgnore
   public void setFirstAired(Date newValue) {
     Date oldValue = this.firstAired;
@@ -186,11 +176,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     firePropertyChange(FIRST_AIRED_AS_STRING, oldValue, newValue);
   }
 
-  /**
-   * Gets the tv show season.
-   * 
-   * @return the tv show season
-   */
   public TvShowSeason getTvShowSeason() {
     if (tvShow == null) {
       return null;
@@ -198,9 +183,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return tvShow.getSeasonForEpisode(this);
   }
 
-  /**
-   * Sets the tv show season.
-   */
   public void setTvShowSeason() {
     // dummy for beansbinding
   }
@@ -257,50 +239,29 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    * @throws ParseException
    *           if string cannot be parsed!
    */
-  public void setFirstAired(String aired) {
-    try {
-      Pattern date = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
-      Matcher m = date.matcher(aired);
+  public void setFirstAired(String aired) throws ParseException {
+    Pattern date = Pattern.compile("([0-9]{2})[_\\.-]([0-9]{2})[_\\.-]([0-9]{4})");
+    Matcher m = date.matcher(aired);
+    if (m.find()) {
+      this.firstAired = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+    }
+    else {
+      date = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
+      m = date.matcher(aired);
       if (m.find()) {
-        this.firstAired = new SimpleDateFormat("dd-MM-yyyy").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
+        this.firstAired = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
       }
       else {
-        date = Pattern.compile("([0-9]{4})[_\\.-]([0-9]{2})[_\\.-]([0-9]{2})");
-        m = date.matcher(aired);
-        if (m.find()) {
-          this.firstAired = new SimpleDateFormat("yyyy-MM-dd").parse(m.group(1) + "-" + m.group(2) + "-" + m.group(3));
-        }
-        else {
-          // still not found; try to create a Date object out of it
-          firstAired = new Date(Long.parseLong(aired));
-        }
+        // still not found; try to create a Date object out of it
+        this.firstAired = new Date(Long.parseLong(aired));
       }
-    }
-    catch (Exception e) {
-      firstAired = null;
-      LOGGER.warn("could not parse date from: " + aired);
     }
   }
 
-  /**
-   * Gets the tv show.
-   * 
-   * @return the tv show
-   */
   public TvShow getTvShow() {
     return tvShow;
   }
 
-  public UUID getTvShowDbId() {
-    return tvShowId;
-  }
-
-  /**
-   * Sets the tv show.
-   * 
-   * @param newValue
-   *          the new tv show
-   */
   public void setTvShow(TvShow newValue) {
     TvShow oldValue = this.tvShow;
     this.tvShow = newValue;
@@ -308,59 +269,72 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     firePropertyChange(TV_SHOW, oldValue, newValue);
   }
 
-  /**
-   * Gets the episode.
-   * 
-   * @return the episode
-   */
+  public UUID getTvShowDbId() {
+    return tvShowId;
+  }
+
   public int getEpisode() {
+    if (isDvdOrder) {
+      return dvdEpisode;
+    }
     return episode;
   }
 
-  /**
-   * Gets the season.
-   * 
-   * @return the season
-   */
   public int getSeason() {
+    if (isDvdOrder) {
+      return dvdSeason;
+    }
     return season;
   }
 
-  /**
-   * Sets the episode.
-   * 
-   * @param newValue
-   *          the new episode
-   */
   public void setEpisode(int newValue) {
-    int oldValue = this.episode;
-    this.episode = newValue;
-    firePropertyChange(EPISODE, oldValue, newValue);
+    if (isDvdOrder) {
+      setDvdEpisode(newValue);
+    }
+    else {
+      setAiredEpisode(newValue);
+    }
+
     firePropertyChange(TITLE_FOR_UI, "", newValue);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.tinymediamanager.core.MediaEntity#setTitle(java.lang.String)
-   */
+  public void setAiredEpisode(int newValue) {
+    int oldValue = this.episode;
+    this.episode = newValue;
+    firePropertyChange(EPISODE, oldValue, newValue);
+    firePropertyChange(AIRED_EPISODE, oldValue, newValue);
+  }
+
+  public int getAiredEpisode() {
+    return this.episode;
+  }
+
   @Override
   public void setTitle(String newValue) {
     super.setTitle(newValue);
     firePropertyChange(TITLE_FOR_UI, "", newValue);
   }
 
-  /**
-   * Sets the season.
-   * 
-   * @param newValue
-   *          the new season
-   */
   public void setSeason(int newValue) {
+    if (isDvdOrder) {
+      setDvdSeason(newValue);
+    }
+    else {
+      setAiredSeason(newValue);
+    }
+
+    firePropertyChange(TITLE_FOR_UI, "", newValue);
+  }
+
+  public void setAiredSeason(int newValue) {
     int oldValue = this.season;
     this.season = newValue;
     firePropertyChange(SEASON, oldValue, newValue);
-    firePropertyChange(TITLE_FOR_UI, "", newValue);
+    firePropertyChange(AIRED_SEASON, oldValue, newValue);
+  }
+
+  public int getAiredSeason() {
+    return this.season;
   }
 
   /**
@@ -370,6 +344,8 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    */
   public String getTitleForUi() {
     StringBuffer titleForUi = new StringBuffer();
+    int episode = getEpisode();
+    int season = getSeason();
     if (episode > 0 && season > 0) {
       titleForUi.append(String.format("S%02dE%02d - ", season, episode));
     }
@@ -418,12 +394,18 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     setPlot(metadata.getStringValue(MediaMetadata.PLOT));
     setIds(metadata.getIds());
 
-    setDvdSeason(metadata.getStringValue(MediaMetadata.SEASON_NR_DVD));
-    setDvdEpisode(metadata.getStringValue(MediaMetadata.EPISODE_NR_DVD));
-    setCombinedSeason(metadata.getStringValue(MediaMetadata.SEASON_NR_COMBINED));
-    setCombinedEpisode(metadata.getStringValue(MediaMetadata.EPISODE_NR_COMBINED));
-    setAbsoluteNumber(metadata.getStringValue(MediaMetadata.ABSOLUTE_NR));
-    setFirstAired(metadata.getStringValue(MediaMetadata.RELEASE_DATE));
+    setAiredSeason(metadata.getIntegerValue(MediaMetadata.SEASON_NR));
+    setAiredEpisode(metadata.getIntegerValue(MediaMetadata.EPISODE_NR));
+    setDvdSeason(metadata.getIntegerValue(MediaMetadata.SEASON_NR_DVD));
+    setDvdEpisode(metadata.getIntegerValue(MediaMetadata.EPISODE_NR_DVD));
+
+    try {
+      setFirstAired(metadata.getStringValue(MediaMetadata.RELEASE_DATE));
+    }
+    catch (ParseException e) {
+      LOGGER.warn(e.getMessage());
+    }
+
     setRating(metadata.getFloatValue(MediaMetadata.RATING));
 
     List<TvShowActor> actors = new ArrayList<TvShowActor>();
@@ -876,7 +858,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
    */
   @Override
   public boolean isScraped() {
-    if (!scraped && !plot.isEmpty() && firstAired != null && season > -1 && episode > -1) {
+    if (!scraped && !plot.isEmpty() && firstAired != null && getSeason() > -1 && getEpisode() > -1) {
       return true;
     }
     return scraped;
@@ -980,44 +962,41 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return this.tags;
   }
 
-  public String getDvdSeason() {
+  public int getDvdSeason() {
     return dvdSeason;
   }
 
-  public void setDvdSeason(String dvdSeason) {
-    this.dvdSeason = dvdSeason;
+  public void setDvdSeason(int newValue) {
+    int oldValue = this.dvdSeason;
+    this.dvdSeason = newValue;
+    firePropertyChange(SEASON, oldValue, newValue);
+    firePropertyChange(DVD_SEASON, oldValue, newValue);
   }
 
-  public String getDvdEpisode() {
+  public int getDvdEpisode() {
     return dvdEpisode;
   }
 
-  public void setDvdEpisode(String dvdEpisode) {
-    this.dvdEpisode = dvdEpisode;
+  public void setDvdEpisode(int newValue) {
+    int oldValue = this.dvdEpisode;
+    this.dvdEpisode = newValue;
+    firePropertyChange(EPISODE, oldValue, newValue);
+    firePropertyChange(DVD_EPISODE, oldValue, newValue);
   }
 
-  public String getCombinedSeason() {
-    return combinedSeason;
+  /**
+   * is this episode in DVD order?
+   * 
+   * @return episode in DVD order
+   */
+  public boolean isDvdOrder() {
+    return isDvdOrder;
   }
 
-  public void setCombinedSeason(String combinedSeason) {
-    this.combinedSeason = combinedSeason;
-  }
-
-  public String getCombinedEpisode() {
-    return combinedEpisode;
-  }
-
-  public void setCombinedEpisode(String combinedEpisode) {
-    this.combinedEpisode = combinedEpisode;
-  }
-
-  public String getAbsoluteNumber() {
-    return absoluteNumber;
-  }
-
-  public void setAbsoluteNumber(String absoluteNumber) {
-    this.absoluteNumber = absoluteNumber;
+  public void setDvdOrder(boolean newValue) {
+    boolean oldValue = this.isDvdOrder;
+    this.isDvdOrder = newValue;
+    firePropertyChange(DVD_ORDER, oldValue, newValue);
   }
 
   /**

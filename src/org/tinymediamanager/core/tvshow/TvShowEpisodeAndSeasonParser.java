@@ -123,8 +123,8 @@ public class TvShowEpisodeAndSeasonParser {
     String foldername = "";
     if (showname != null && !showname.isEmpty()) {
       // remove string like tvshow name (440, 24, ...)
-      basename = basename.replaceAll("(?i)^" + showname + "", "");
-      basename = basename.replaceAll("(?i) " + showname + " ", "");
+      basename = basename.replaceAll("(?i)^" + Pattern.quote(showname) + "", "");
+      basename = basename.replaceAll("(?i) " + Pattern.quote(showname) + " ", "");
     }
     basename = basename.replaceFirst("\\.\\w{1,4}$", ""); // remove extension if 1-4 chars
     // parse foldername
@@ -199,6 +199,7 @@ public class TvShowEpisodeAndSeasonParser {
     // parse SxxEPyy 1-N
     regex = seasonMultiEP;
     m = regex.matcher(basename);
+    int lastFoundEpisode = 0;
     while (m.find()) {
       int s = -1;
       try {
@@ -215,7 +216,10 @@ public class TvShowEpisodeAndSeasonParser {
           catch (NumberFormatException nfe) {
             // can not happen from regex since we only come here with max 2 numeric chars
           }
-          if (ep > 0 && !result.episodes.contains(ep)) {
+          // check if the found episode is greater zero, not already in the list and if multi episode
+          // it has to be the next number than the previous found one
+          if (ep > 0 && !result.episodes.contains(ep) && (lastFoundEpisode == 0 || lastFoundEpisode + 1 == ep)) {
+            lastFoundEpisode = ep;
             result.episodes.add(ep);
             LOGGER.trace("add found EP " + ep);
           }

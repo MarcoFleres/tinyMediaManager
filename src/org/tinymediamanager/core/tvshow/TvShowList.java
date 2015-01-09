@@ -41,6 +41,7 @@ import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.IMediaArtworkProvider;
 import org.tinymediamanager.scraper.ITvShowMetadataProvider;
+import org.tinymediamanager.scraper.MediaLanguages;
 import org.tinymediamanager.scraper.MediaSearchOptions;
 import org.tinymediamanager.scraper.MediaSearchOptions.SearchParam;
 import org.tinymediamanager.scraper.MediaSearchResult;
@@ -444,7 +445,7 @@ public class TvShowList extends AbstractModelObject {
   }
 
   /**
-   * Search tv show.
+   * Search tv show with the default language.
    * 
    * @param searchTerm
    *          the search term
@@ -453,6 +454,21 @@ public class TvShowList extends AbstractModelObject {
    * @return the list
    */
   public List<MediaSearchResult> searchTvShow(String searchTerm, ITvShowMetadataProvider metadataProvider) {
+    return searchTvShow(searchTerm, metadataProvider, Globals.settings.getTvShowSettings().getScraperLanguage());
+  }
+
+  /**
+   * Search tv show with the chosen language.
+   * 
+   * @param searchTerm
+   *          the search term
+   * @param metadataProvider
+   *          the metadata provider
+   * @param language
+   *          the language to search with
+   * @return the list
+   */
+  public List<MediaSearchResult> searchTvShow(String searchTerm, ITvShowMetadataProvider metadataProvider, MediaLanguages language) {
     // format searchstring
     // searchTerm = MetadataUtil.removeNonSearchCharacters(searchTerm);
 
@@ -464,7 +480,7 @@ public class TvShowList extends AbstractModelObject {
         provider = getMetadataProvider();
       }
       MediaSearchOptions options = new MediaSearchOptions(MediaType.TV_SHOW, MediaSearchOptions.SearchParam.QUERY, searchTerm);
-      options.set(SearchParam.LANGUAGE, Globals.settings.getTvShowSettings().getScraperLanguage().name());
+      options.set(SearchParam.LANGUAGE, language.name());
       options.set(SearchParam.COUNTRY, Globals.settings.getTvShowSettings().getCertificationCountry().getAlpha2());
       searchResult = provider.search(options);
 
