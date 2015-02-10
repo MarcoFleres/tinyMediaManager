@@ -41,15 +41,11 @@
 
     <target name="compile" depends="init">
         <echo message="${ant.project.name}: ${ant.file}" />
-        <javac debug="true" debuglevel="source,lines,vars" destdir="${bin.dir}" source="1.6" target="1.6" encoding="UTF-8">
+        <javac debug="true" debuglevel="source,lines,vars" destdir="${bin.dir}" source="1.7" target="1.7" encoding="UTF-8">
             <src path="src" />
             <classpath refid="classpath.default" />
         </javac>
-        <!-- enhance several classes for objectdb -->
-        <java classname="com.objectdb.Enhancer" fork="true" classpathref="classpath.default">
-            <arg line="-s"/>
-            <arg line="${bin.dir}/org/tinymediamanager/core/*"/>
-        </java>
+        
         <!-- copy non java files -->
         <copy includeemptydirs="false" todir="${bin.dir}">
             <fileset dir="src" excludes="**/*.java" />

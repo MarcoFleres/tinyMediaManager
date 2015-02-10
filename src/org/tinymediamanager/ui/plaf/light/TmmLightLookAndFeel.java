@@ -28,7 +28,6 @@ import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.AbstractTheme;
 import com.jtattoo.plaf.BaseCheckBoxMenuItemUI;
 import com.jtattoo.plaf.BaseDesktopPaneUI;
-import com.jtattoo.plaf.BaseEditorPaneUI;
 import com.jtattoo.plaf.BaseFileChooserUI;
 import com.jtattoo.plaf.BaseFormattedTextFieldUI;
 import com.jtattoo.plaf.BaseLabelUI;
@@ -42,9 +41,7 @@ import com.jtattoo.plaf.BaseRootPaneUI;
 import com.jtattoo.plaf.BaseScrollPaneUI;
 import com.jtattoo.plaf.BaseSeparatorUI;
 import com.jtattoo.plaf.BaseSliderUI;
-import com.jtattoo.plaf.BaseSpinnerUI;
 import com.jtattoo.plaf.BaseSplitPaneUI;
-import com.jtattoo.plaf.BaseTextAreaUI;
 import com.jtattoo.plaf.BaseToolTipUI;
 import com.jtattoo.plaf.JTattooUtilities;
 
@@ -199,8 +196,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         // BaseLookAndFeel classes
         "LabelUI", BaseLabelUI.class.getName(), 
         "SeparatorUI", BaseSeparatorUI.class.getName(),
-        "TextAreaUI", BaseTextAreaUI.class.getName(), 
-        "EditorPaneUI", BaseEditorPaneUI.class.getName(), 
         "ToolTipUI", BaseToolTipUI.class.getName(), 
         "SliderUI", BaseSliderUI.class.getName(), 
         "ProgressBarUI", BaseProgressBarUI.class.getName(),
@@ -231,13 +226,16 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "PasswordFieldUI", TmmLightPasswordFieldUI.class.getName(),
         "CheckBoxUI", TmmLightCheckBoxUI.class.getName(),
         "RadioButtonUI", TmmLightRadioButtonUI.class.getName(),
+        "TextAreaUI", TmmLightTextAreaUI.class.getName(),
+        "EditorPaneUI", TmmLightEditorPaneUI.class.getName(),
+        "TextPaneUI", TmmLightTextPaneUI.class.getName(),
     };
     table.putDefaults(uiDefaults);
     // @formatter:on
 
     if (JTattooUtilities.getJavaVersion() >= 1.5) {
       table.put("FormattedTextFieldUI", BaseFormattedTextFieldUI.class.getName());
-      table.put("SpinnerUI", BaseSpinnerUI.class.getName());
+      table.put("SpinnerUI", TmmLightSpinnerUI.class.getName());
     }
   }
 }

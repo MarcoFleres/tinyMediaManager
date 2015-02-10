@@ -5,7 +5,7 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/jdom.jar"/>
 	<classpathentry kind="lib" path="lib/Scaling-bin.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="lib/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3.jar"/>
@@ -46,7 +46,7 @@
 	<classpathentry kind="lib" path="lib/imgscalr-lib.jar"/>
 	<classpathentry kind="lib" path="lib/core.jar"/>
 	<classpathentry kind="lib" path="lib/twinkle.jar"/>
-	<classpathentry kind="lib" path="lib/JTattoo.jar"/>
+	<classpathentry kind="lib" path="lib/JTattoo.jar" sourcepath="/home/manuel/.m2/repository/com/jtattoo/JTattoo/1.6.11/JTattoo-1.6.11-sources.jar"/>
 	<classpathentry kind="lib" path="lib/api-common.jar"/>
 	<classpathentry kind="lib" path="lib/LightBox.jar"/>
 	<classpathentry kind="lib" path="lib/retrofit.jar" sourcepath="buildsupport/retrofit-1.5.0-sources.jar"/>
@@ -55,6 +55,6 @@
 	<classpathentry kind="lib" path="lib/image-viewer.jar"/>
 	<classpathentry kind="lib" path="lib/jgoodies-common.jar"/>
 	<classpathentry kind="lib" path="lib/h2.jar"/>
-    <classpathentry kind="lib" path="lib/rottentomatoesapi.jar"/>
+	<classpathentry kind="lib" path="lib/rottentomatoesapi.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

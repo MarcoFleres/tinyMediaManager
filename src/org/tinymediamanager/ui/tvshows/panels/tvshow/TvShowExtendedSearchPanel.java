@@ -44,7 +44,6 @@ import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.scraper.MediaGenres;
-import org.tinymediamanager.ui.SmallTextFieldBorder;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.TmmFilterPanel;
@@ -144,7 +143,6 @@ public class TvShowExtendedSearchPanel extends TmmFilterPanel {
     add(lblCastMember, "4, 6, right, default");
 
     tfCastMember = new JTextField();
-    tfCastMember.setBorder(new SmallTextFieldBorder());
     add(tfCastMember, "6, 6, fill, default");
     tfCastMember.setColumns(10);
     tfCastMember.getDocument().addDocumentListener(new DocumentListener() {

@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JMenuBar;
 import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -120,12 +121,20 @@ public class TmmLightBorders extends BaseBorders {
     return popupMenuBorder;
   }
 
+  public static Border getSpinnerBorder() {
+    if (spinnerBorder == null) {
+      spinnerBorder = new TextFieldBorder();
+    }
+    return spinnerBorder;
+  }
+
   // ------------------------------------------------------------------------------------
   // Implementation of border classes
   // ------------------------------------------------------------------------------------
   public static class TextFieldBorder extends AbstractBorder implements UIResource {
     private static final long   serialVersionUID = -1476629322366320255L;
-    private static final Insets insets           = new Insets(4, 6, 4, 6);
+    private static final Insets insets           = new Insets(4, 6, 5, 7);
+    private static final Color  SHADOW_COLOR     = new Color(208, 208, 208);
 
     private static int          focusWidth       = 2;
 
@@ -133,6 +142,8 @@ public class TmmLightBorders extends BaseBorders {
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
       int r = 10;
       RoundRectangle2D round = new RoundRectangle2D.Float(x + focusWidth, y + focusWidth, width - 2 * focusWidth, height - 2 * focusWidth, r, r);
+      RoundRectangle2D shadow = new RoundRectangle2D.Float(x + focusWidth + 1, y + focusWidth + 1, width - 2 * focusWidth, height - 2 * focusWidth,
+          r, r);
       Container parent = c.getParent();
       if (parent != null) {
         GraphicsConfiguration gc = ((Graphics2D) g).getDeviceConfiguration();
@@ -142,13 +153,24 @@ public class TmmLightBorders extends BaseBorders {
         g2.setComposite(AlphaComposite.Clear);
         g2.fillRect(0, 0, width, height);
 
+        Area corner = new Area(new Rectangle2D.Float(x, y, width, height));
         g2.setComposite(AlphaComposite.Src);
         g2.setColor(parent.getBackground());
-        Area corner = new Area(new Rectangle2D.Float(x, y, width, height));
         corner.subtract(new Area(round));
         g2.fill(corner);
 
-        if (c.hasFocus()) {
+        g2.setColor(SHADOW_COLOR);
+        corner.intersect(new Area(shadow));
+        g2.fill(corner);
+
+        boolean focus = c.hasFocus();
+        if (c instanceof JSpinner) {
+          Component[] comps = ((JSpinner) c).getEditor().getComponents();
+          for (Component component : comps) {
+            focus |= component.hasFocus();
+          }
+        }
+        if (focus) {
           x = focusWidth;
           y = focusWidth;
           int w = width - 2 * focusWidth;

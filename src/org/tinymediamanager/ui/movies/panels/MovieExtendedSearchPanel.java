@@ -44,7 +44,6 @@ import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.scraper.MediaGenres;
-import org.tinymediamanager.ui.SmallTextFieldBorder;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.TmmFilterPanel;
@@ -186,7 +185,6 @@ public class MovieExtendedSearchPanel extends TmmFilterPanel {
     add(lblCastMember, "4, 8, right, default");
 
     tfCastMember = new JTextField();
-    tfCastMember.setBorder(new SmallTextFieldBorder());
     add(tfCastMember, "6, 8, fill, default");
     tfCastMember.setColumns(10);
     tfCastMember.getDocument().addDocumentListener(new DocumentListener() {
