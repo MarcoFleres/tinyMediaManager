@@ -81,6 +81,7 @@ import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.AutocompleteComboBox;
 import org.tinymediamanager.ui.components.ImageLabel;
+import org.tinymediamanager.ui.components.MainTabbedPane;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
@@ -194,9 +195,12 @@ public class MovieEditorDialog extends TmmDialog {
       panelPath.add(lblMoviePath, "5, 2, left, top");
     }
 
-    JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.NORTH);
+    JPanel content = new JPanel(new BorderLayout());
+    // content.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
+    getContentPane().add(content, BorderLayout.CENTER);
+    JTabbedPane tabbedPane = new MainTabbedPane();
     tabbedPane.addTab(BUNDLE.getString("metatag.details"), details1Panel); //$NON-NLS-1$
-    getContentPane().add(tabbedPane, BorderLayout.CENTER);
+    content.add(tabbedPane, BorderLayout.CENTER);
 
     details1Panel.setBorder(new EmptyBorder(5, 5, 5, 5));
     details1Panel.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"),

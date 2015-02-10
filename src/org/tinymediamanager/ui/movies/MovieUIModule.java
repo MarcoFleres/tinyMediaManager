@@ -102,11 +102,11 @@ public class MovieUIModule implements ITmmUIModule {
 
     // tabbed pane containing the movie data
     JTabbedPane tabbedPane = new MainTabbedPane();
-    tabbedPane.addTab("Details", new MovieInformationPanel(selectionModel));
-    tabbedPane.addTab("Cast", new MovieCastPanel(selectionModel));
-    tabbedPane.addTab("Media files", new MovieMediaInformationPanel(selectionModel));
-    tabbedPane.addTab("Artwork", new MovieArtworkPanel(selectionModel));
-    tabbedPane.addTab("Trailer", new MovieTrailerPanel(selectionModel));
+    tabbedPane.addTab(BUNDLE.getString("metatag.details"), new MovieInformationPanel(selectionModel)); //$NON-NLS-1$
+    tabbedPane.addTab(BUNDLE.getString("metatag.cast"), new MovieCastPanel(selectionModel)); //$NON-NLS-1$
+    tabbedPane.addTab(BUNDLE.getString("metatag.mediafiles"), new MovieMediaInformationPanel(selectionModel)); //$NON-NLS-1$
+    tabbedPane.addTab(BUNDLE.getString("metatag.artwork"), new MovieArtworkPanel(selectionModel)); //$NON-NLS-1$
+    tabbedPane.addTab(BUNDLE.getString("metatag.trailer"), new MovieTrailerPanel(selectionModel)); //$NON-NLS-1$
     layeredPane.add(tabbedPane, "1, 1, 2, 2, fill, fill");
     layeredPane.setLayer(tabbedPane, 0);
 

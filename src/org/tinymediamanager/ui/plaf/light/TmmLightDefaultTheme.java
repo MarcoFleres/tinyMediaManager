@@ -77,7 +77,7 @@ public class TmmLightDefaultTheme extends TmmTheme {
     windowTitleBackgroundColor = new ColorUIResource(46, 46, 46);
     windowTitleColorLight = new ColorUIResource(46, 46, 46);
     windowTitleColorDark = new ColorUIResource(46, 46, 46);
-    windowBorderColor = new ColorUIResource(46, 46, 46);
+    windowBorderColor = new ColorUIResource(41, 41, 41);
 
     windowInactiveTitleForegroundColor = white;
     windowInactiveTitleBackgroundColor = new ColorUIResource(240, 238, 225); // new ColorUIResource(141, 186, 253);

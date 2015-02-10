@@ -80,6 +80,7 @@ import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.AutocompleteComboBox;
 import org.tinymediamanager.ui.components.ImageLabel;
+import org.tinymediamanager.ui.components.MainTabbedPane;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
@@ -107,8 +108,6 @@ public class TvShowEditorDialog extends TmmDialog {
                                                                                                                        .observableList(new ArrayList<TvShowActor>());
   private List<MediaGenres>                                                                       genres           = ObservableCollections
                                                                                                                        .observableList(new ArrayList<MediaGenres>());
-  // private List<MediaTrailer> trailers = ObservableCollections
-  // .observableList(new ArrayList<MediaTrailer>());
   private List<String>                                                                            tags             = ObservableCollections
                                                                                                                        .observableList(new ArrayList<String>());
   private List<TvShowEpisodeEditorContainer>                                                      episodes         = ObservableCollections
@@ -187,7 +186,7 @@ public class TvShowEditorDialog extends TmmDialog {
       panelPath.add(lvlTvShowPath, "5, 2, left, top");
     }
 
-    JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.NORTH);
+    JTabbedPane tabbedPane = new MainTabbedPane();
     tabbedPane.addTab(BUNDLE.getString("metatag.details"), details1Panel); //$NON-NLS-1$
     getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
