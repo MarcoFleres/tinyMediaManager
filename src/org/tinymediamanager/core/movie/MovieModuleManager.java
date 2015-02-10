@@ -79,8 +79,8 @@ public class MovieModuleManager implements ITmmModule {
     objectMapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false);
     objectMapper.configure(MapperFeature.AUTO_DETECT_SETTERS, false);
     objectMapper.configure(MapperFeature.AUTO_DETECT_FIELDS, false);
-    objectMapper.setSerializationInclusion(Include.NON_NULL);
-    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    // objectMapper.setSerializationInclusion(Include.NON_NULL);
+    // objectMapper.setSerializationInclusion(Include.NON_EMPTY);
     objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
 
     MovieList.getInstance().loadMoviesFromDatabase(connection);
