@@ -66,7 +66,7 @@ public class MovieModuleManager implements ITmmModule {
   public void startUp() throws Exception {
     // start and configure h2
     Class.forName("org.h2.Driver");
-    connection = DriverManager.getConnection("jdbc:h2:./" + MOVIE_DB + ";compress=true;defrag_always=true", "", "");
+    connection = DriverManager.getConnection("jdbc:h2:./" + MOVIE_DB + ";compress=true;defrag_always=true;RETENTION_TIME=0", "", "");
 
     Statement stat = connection.createStatement();
     stat.execute("create table if not exists movie(id uuid primary key, data clob)");
