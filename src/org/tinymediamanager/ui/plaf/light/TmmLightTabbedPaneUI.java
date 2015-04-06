@@ -15,21 +15,12 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-
-import javax.swing.JComponent;
-import javax.swing.plaf.ComponentUI;
-
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.BaseTabbedPaneUI;
+
+import javax.swing.*;
+import javax.swing.plaf.ComponentUI;
+import java.awt.*;
 
 /**
  * The Class TmmLightTabbedPaneUI.
@@ -75,17 +66,24 @@ public class TmmLightTabbedPaneUI extends BaseTabbedPaneUI {
     RenderingHints savedRenderingHints = g2D.getRenderingHints();
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+    // paint border; need to paint the border here, because the method is called after paintTabBackground in JTattoo
+    g.setColor(BORDER_COLOR);
+    if (tabPlacement == TOP) {
+      g.fillRoundRect(x + TAB_GAP, y, w - 2 * TAB_GAP, h, BORDER_RADIUS, BORDER_RADIUS);
+      g.fillRect(x + TAB_GAP, y + BORDER_RADIUS / 2, w - 2 * TAB_GAP, h - BORDER_RADIUS / 2);
+    }
+
+    // paint background
     if (isSelected) {
-      g.setColor(SELECTED_COLOR);
+          g.setColor(SELECTED_COLOR);
     }
     else {
       g.setColor(AbstractLookAndFeel.getBackgroundColor());
     }
 
     if (tabPlacement == TOP) {
-      g.fillRoundRect(x + TAB_GAP, y, w - 2 * TAB_GAP, h, BORDER_RADIUS, BORDER_RADIUS);
-      g.fillRect(x + TAB_GAP, y + BORDER_RADIUS / 2, w - 2 * TAB_GAP, h - BORDER_RADIUS / 2);
-      // g.fillRect(x + 1, y + 1, w - 1, h + 2);
+      g.fillRoundRect(x + TAB_GAP + 1, y + 1, w - 2 * TAB_GAP - 2, h - 2, BORDER_RADIUS, BORDER_RADIUS);
+      g.fillRect(x + TAB_GAP + 1, y + BORDER_RADIUS / 2 + 1, w - 2 * TAB_GAP - 2, h - BORDER_RADIUS / 2 - 1);
     }
     else if (tabPlacement == LEFT) {
       g.fillRect(x + 1, y + 1, w + 2, h - 1);
@@ -101,20 +99,24 @@ public class TmmLightTabbedPaneUI extends BaseTabbedPaneUI {
   }
 
   @Override
-  protected void paintRoundedTopTabBorder(int tabIndex, Graphics g, int x1, int y1, int x2, int y2, boolean isSelected) {
-    Graphics2D g2D = (Graphics2D) g;
-    Object savedRederingHint = g2D.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-    g.setColor(BORDER_COLOR);
-
-    g.drawLine(x1 + TAB_GAP + BORDER_RADIUS / 2, y1, x2 - TAB_GAP - BORDER_RADIUS / 2, y1);
-    g.drawArc(x1 + TAB_GAP, y1, BORDER_RADIUS, BORDER_RADIUS, 90, 90);
-    g.drawArc(x2 - BORDER_RADIUS - TAB_GAP, y1, BORDER_RADIUS, BORDER_RADIUS, 0, 90);
-    g.drawLine(x1 + TAB_GAP, y1 + BORDER_RADIUS / 2, x1 + TAB_GAP, y2 - 1);
-    g.drawLine(x2 - TAB_GAP, y1 + BORDER_RADIUS / 2, x2 - TAB_GAP, y2 - 1);
-
-    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
+  protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+    // when the tab is selected, it will be painted in the background method
+//    if (isSelected){
+//      return;
+//    }
+//    Graphics2D g2D = (Graphics2D) g;
+//    Object savedRederingHint = g2D.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+//    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//
+//    g.setColor(BORDER_COLOR);
+//
+//    g.drawLine(x1 + TAB_GAP + BORDER_RADIUS / 2, y1, x2 - TAB_GAP - BORDER_RADIUS / 2, y1);
+//    g.drawArc(x1 + TAB_GAP, y1, BORDER_RADIUS, BORDER_RADIUS, 90, 90);
+//    g.drawArc(x2 - BORDER_RADIUS - TAB_GAP, y1, BORDER_RADIUS, BORDER_RADIUS, 0, 90);
+//    g.drawLine(x1 + TAB_GAP, y1 + BORDER_RADIUS / 2, x1 + TAB_GAP, y2 - 1);
+//    g.drawLine(x2 - TAB_GAP, y1 + BORDER_RADIUS / 2, x2 - TAB_GAP, y2 - 1);
+//
+//    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
   }
 
   @Override
