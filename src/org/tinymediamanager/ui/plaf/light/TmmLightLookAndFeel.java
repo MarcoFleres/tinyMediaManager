@@ -15,13 +15,6 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-
-import javax.swing.UIDefaults;
-
 import com.jtattoo.plaf.AbstractBorderFactory;
 import com.jtattoo.plaf.AbstractIconFactory;
 import com.jtattoo.plaf.AbstractLookAndFeel;
@@ -38,12 +31,17 @@ import com.jtattoo.plaf.BasePopupMenuUI;
 import com.jtattoo.plaf.BaseProgressBarUI;
 import com.jtattoo.plaf.BaseRadioButtonMenuItemUI;
 import com.jtattoo.plaf.BaseRootPaneUI;
-import com.jtattoo.plaf.BaseScrollPaneUI;
 import com.jtattoo.plaf.BaseSeparatorUI;
 import com.jtattoo.plaf.BaseSliderUI;
 import com.jtattoo.plaf.BaseSplitPaneUI;
 import com.jtattoo.plaf.BaseToolTipUI;
 import com.jtattoo.plaf.JTattooUtilities;
+
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
 
 public class TmmLightLookAndFeel extends AbstractLookAndFeel {
 
@@ -184,8 +182,8 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
     table.put("ScrollBar.incrementButtonGap", new Integer(-1));
     table.put("ScrollBar.decrementButtonGap", new Integer(-1));
     table.put("CheckBox.icon", getIconFactory().getCheckBoxIcon());
-    table.put("ScrollPane.border", null);
     table.put("Tree.textForeground", getSelectionForegroundColor());
+    table.put("TitledBorder.border", TmmLightBorderFactory.getInstance().getTitledBorder());
   }
 
   @Override
@@ -199,7 +197,6 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "ToolTipUI", BaseToolTipUI.class.getName(), 
         "SliderUI", BaseSliderUI.class.getName(), 
         "ProgressBarUI", BaseProgressBarUI.class.getName(),
-        "ScrollPaneUI", BaseScrollPaneUI.class.getName(), 
         "SplitPaneUI", BaseSplitPaneUI.class.getName(),
         "FileChooserUI", BaseFileChooserUI.class.getName(), 
         "MenuBarUI", BaseMenuBarUI.class.getName(), 
@@ -229,6 +226,7 @@ public class TmmLightLookAndFeel extends AbstractLookAndFeel {
         "TextAreaUI", TmmLightTextAreaUI.class.getName(),
         "EditorPaneUI", TmmLightEditorPaneUI.class.getName(),
         "TextPaneUI", TmmLightTextPaneUI.class.getName(),
+        "ScrollPaneUI", TmmLightScrollPaneUI.class.getName(),
     };
     table.putDefaults(uiDefaults);
     // @formatter:on

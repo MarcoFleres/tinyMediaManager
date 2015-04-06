@@ -15,38 +15,29 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Insets;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
-
-import javax.swing.JMenuBar;
-import javax.swing.JPopupMenu;
-import javax.swing.JSpinner;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.UIResource;
-
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.BaseBorders;
 import com.jtattoo.plaf.ColorHelper;
 import com.jtattoo.plaf.luna.LunaBorders.RolloverToolButtonBorder;
 
+import javax.swing.*;
+import javax.swing.border.AbstractBorder;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.plaf.UIResource;
+import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+
 /**
  * @author Manuel Laggner
  */
 public class TmmLightBorders extends BaseBorders {
+  protected static Border titledBorder = null;
+
   // ------------------------------------------------------------------------------------
   // Lazy access methods
   // ------------------------------------------------------------------------------------
@@ -128,6 +119,13 @@ public class TmmLightBorders extends BaseBorders {
     return spinnerBorder;
   }
 
+  public static Border getTitledBorder() {
+    if (titledBorder == null) {
+      titledBorder = new RoundLineBorder(ColorHelper.brighter(AbstractLookAndFeel.getForegroundColor(), 30), 1, 16);
+    }
+    return titledBorder;
+  }
+
   // ------------------------------------------------------------------------------------
   // Implementation of border classes
   // ------------------------------------------------------------------------------------
@@ -141,11 +139,11 @@ public class TmmLightBorders extends BaseBorders {
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
       int r = 10;
-      RoundRectangle2D round = new RoundRectangle2D.Float(x + focusWidth, y + focusWidth, width - 2 * focusWidth, height - 2 * focusWidth, r, r);
-      RoundRectangle2D shadow = new RoundRectangle2D.Float(x + focusWidth + 1, y + focusWidth + 1, width - 2 * focusWidth, height - 2 * focusWidth,
-          r, r);
       Container parent = c.getParent();
       if (parent != null) {
+        RoundRectangle2D round = new RoundRectangle2D.Float(x + focusWidth, y + focusWidth, width - 2 * focusWidth, height - 2 * focusWidth, r, r);
+        RoundRectangle2D shadow = new RoundRectangle2D.Float(x + focusWidth + 1, y + focusWidth + 1, width - 2 * focusWidth, height - 2 * focusWidth,
+            r, r);
         GraphicsConfiguration gc = ((Graphics2D) g).getDeviceConfiguration();
         BufferedImage img = gc.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
         Graphics2D g2 = img.createGraphics();
@@ -161,7 +159,11 @@ public class TmmLightBorders extends BaseBorders {
 
         g2.setColor(SHADOW_COLOR);
         corner.intersect(new Area(shadow));
-        g2.fill(corner);
+
+        // drop shadow only when the component is opaque
+        if (c.isOpaque()) {
+          g2.fill(corner);
+        }
 
         boolean focus = c.hasFocus();
         if (c instanceof JSpinner) {
@@ -211,10 +213,33 @@ public class TmmLightBorders extends BaseBorders {
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
-      g.setColor(fieldBorderColor);
-      g.drawRect(x, y, w - 1, h - 1);
-      g.setColor(ColorHelper.brighter(AbstractLookAndFeel.getTheme().getBackgroundColor(), 50));
-      g.drawRect(x + 1, y + 1, w - 3, h - 3);
+      if (tableBorder) {
+        g.setColor(fieldBorderColor);
+        g.drawRect(x, y, w - 1, h - 1);
+        g.setColor(ColorHelper.brighter(AbstractLookAndFeel.getTheme().getBackgroundColor(), 50));
+        g.drawRect(x + 1, y + 1, w - 3, h - 3);
+      }
+      else {
+        Container parent = c.getParent();
+        if (parent != null) {
+          int r = 16;
+          RoundRectangle2D round = new RoundRectangle2D.Float(x, y, w, h, r, r);
+          GraphicsConfiguration gc = ((Graphics2D) g).getDeviceConfiguration();
+          BufferedImage img = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
+          Graphics2D g2 = img.createGraphics();
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+          g2.setComposite(AlphaComposite.Clear);
+          g2.fillRect(0, 0, w, h);
+
+          Area corner = new Area(new Rectangle2D.Float(x, y, w, h));
+          g2.setComposite(AlphaComposite.Src);
+          g2.setColor(parent.getBackground());
+          corner.subtract(new Area(round));
+          g2.fill(corner);
+          g2.dispose();
+          g.drawImage(img, 0, 0, null);
+        }
+      }
     }
 
     @Override
@@ -355,5 +380,50 @@ public class TmmLightBorders extends BaseBorders {
     }
 
   } // class PopupMenuBorder
+
+  public static class RoundLineBorder extends LineBorder {
+    protected int radius;
+
+    public RoundLineBorder(Color color, int thickness, int radius) {
+      super(color, thickness, true);
+      this.radius = radius;
+    }
+
+    @Override
+    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+      if ((this.thickness > 0) && (g instanceof Graphics2D)) {
+        Graphics2D g2d = (Graphics2D) g;
+
+        Object savedRederingHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        Color oldColor = g2d.getColor();
+        Stroke oldKeyStroke = g2d.getStroke();
+        g2d.setColor(this.lineColor);
+
+        g2d.setStroke(new BasicStroke(thickness));
+        g2d.drawRoundRect(x, y, width - thickness, height - thickness, radius, radius);
+
+        g2d.setColor(oldColor);
+        g2d.setStroke(oldKeyStroke);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedRederingHint);
+      }
+    }
+
+    @Override
+    public Insets getBorderInsets(Component c, Insets borderInsets) {
+      Insets ins = getBorderInsets(c);
+      borderInsets.left = ins.left;
+      borderInsets.top = ins.top;
+      borderInsets.right = ins.right;
+      borderInsets.bottom = ins.bottom;
+      return borderInsets;
+    }
+
+    @Override
+    public Insets getBorderInsets(Component c) {
+      return new Insets(0, radius / 2, radius / 2, radius / 2);
+    }
+  } // class RoundLineBorder
 
 } // class TmmLightBorders

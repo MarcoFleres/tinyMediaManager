@@ -16,34 +16,8 @@
 
 package org.tinymediamanager;
 
-import java.awt.AWTEvent;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Dialog.ModalityType;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
-import java.awt.SplashScreen;
-import java.awt.Toolkit;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.logging.Level;
-
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
+import chrriis.dj.nativeswing.swtimpl.NativeInterface;
+import com.sun.jna.Platform;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.commons.lang3.StringUtils;
@@ -67,9 +41,22 @@ import org.tinymediamanager.ui.dialogs.MessageDialog;
 import org.tinymediamanager.ui.dialogs.WhatsNewDialog;
 import org.tinymediamanager.ui.plaf.light.TmmLightLookAndFeel;
 
-import chrriis.dj.nativeswing.swtimpl.NativeInterface;
-
-import com.sun.jna.Platform;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.Dialog.ModalityType;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.logging.Level;
 
 /**
  * The Class TinyMediaManager.
@@ -459,7 +446,7 @@ public class TinyMediaManager {
         // props.setProperty("toolbarColorLight", "237 237 237");
         // props.setProperty("toolbarColorDark", "237 237 237");
         // props.setProperty("tooltipBackgroundColor", "255 255 255");
-        // props.put("windowDecoration", "system");
+//        props.put("windowDecoration", "system");
         // props.put("logoString", "");
 
         // // Get the look and feel class name

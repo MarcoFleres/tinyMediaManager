@@ -15,9 +15,11 @@
  */
 package org.tinymediamanager.ui;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.Line2D;
+import java.awt.image.BufferedImage;
 import java.net.URL;
-
-import javax.swing.ImageIcon;
 
 public class IconManager {
   private final static ImageIcon EMPTY_IMAGE       = new ImageIcon();
@@ -47,8 +49,8 @@ public class IconManager {
   public final static ImageIcon  HINT              = loadImage("hint.png");
   public final static ImageIcon  IMAGE             = loadImage("icn_images.png");
   public final static ImageIcon  INFO              = loadImage("icn_nfo.png");
-  public final static ImageIcon  LIST_ADD          = loadImage("list-add.png");
-  public final static ImageIcon  LIST_REMOVE       = loadImage("list-remove.png");
+  public final static ImageIcon  LIST_ADD          = drawAddIcon();                     // loadImage("list-add.png");
+  public final static ImageIcon  LIST_REMOVE       = drawRemoveIcon();                  // loadImage("list-remove.png");
   public final static ImageIcon  LOADING           = loadImage("loading.gif");
   public final static ImageIcon  PLAY_SMALL        = loadImage("play-small.png");
   public final static ImageIcon  PLAY              = loadImage("play.png");
@@ -71,5 +73,73 @@ public class IconManager {
     }
 
     return EMPTY_IMAGE;
+  }
+
+  // code generated icons
+  private static BufferedImage createEmptyImage(int width, int height, int transparency) {
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    GraphicsConfiguration gc = gd.getDefaultConfiguration();
+    return gc.createCompatibleImage(width, height, transparency);
+  }
+
+  private static ImageIcon drawAddIcon() {
+    int width = 16;
+    int height = 16;
+
+    BufferedImage image = createEmptyImage(width, height, Transparency.TRANSLUCENT);
+    Graphics2D g2D = image.createGraphics();
+    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2D.setStroke(new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+
+    double offsetX = width / 8;
+    double offsetY = height / 8;
+    double shadowOffsetX = width / 16;
+    double shadowOffsetY = height / 16;
+
+    // shadow
+    g2D.setColor(new Color(155, 155, 155));
+    g2D.draw(new Line2D.Double(offsetX + shadowOffsetX, height / 2d + shadowOffsetY, width - offsetX + shadowOffsetX, height / 2d + shadowOffsetY));
+    g2D.draw(new Line2D.Double(width / 2d + shadowOffsetX, offsetY + shadowOffsetY, width / 2d + shadowOffsetX, height - offsetY + shadowOffsetY));
+
+    // cross
+    g2D.setColor(Color.white);
+    g2D.draw(new Line2D.Double(offsetX, height / 2d, width - offsetX, height / 2d));
+    g2D.draw(new Line2D.Double(width / 2d, offsetY, width / 2d, height - offsetY));
+
+    return new ImageIcon(image);
+  }
+
+  private static ImageIcon drawRemoveIcon() {
+    int width = 16;
+    int height = 16;
+
+    BufferedImage image = createEmptyImage(width, height, Transparency.TRANSLUCENT);
+    Graphics2D g2D = image.createGraphics();
+    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2D.setStroke(new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+
+    double offsetX = width / 8;
+    double offsetY = height / 8;
+    double shadowOffsetX = width / 16;
+    double shadowOffsetY = height / 16;
+
+    // shadow
+    g2D.setColor(new Color(155, 155, 155));
+    g2D.draw(new Line2D.Double(width / 2d - (width / 2d - offsetX) / 1.4142 + shadowOffsetX, height / 2d - (height / 2d - offsetY) / 1.4142
+        + shadowOffsetY, width / 2d + (width / 2d - offsetX + shadowOffsetX) / 1.4142 + shadowOffsetX, height / 2d
+        + (height / 2d - offsetY + shadowOffsetY) / 1.4142 + shadowOffsetY));
+    g2D.draw(new Line2D.Double(width / 2d - (width / 2d - offsetX) / 1.4142 + shadowOffsetX, height / 2d + (height / 2d - offsetY + shadowOffsetY)
+        / 1.4142 + shadowOffsetY, width / 2d + (width / 2d - offsetX + shadowOffsetX) / 1.4142 + shadowOffsetX, height / 2d - (height / 2d - offsetY)
+        / 1.4142 + shadowOffsetY));
+
+    // cross
+    g2D.setColor(Color.white);
+    g2D.draw(new Line2D.Double(width / 2d - (width / 2d - offsetX) / 1.4142, height / 2d - (height / 2d - offsetY) / 1.4142, width / 2d
+        + (width / 2d - offsetX) / 1.4142, height / 2d + (height / 2d - offsetY) / 1.4142));
+    g2D.draw(new Line2D.Double(width / 2d - (width / 2d - offsetX) / 1.4142, height / 2d + (height / 2d - offsetY) / 1.4142, width / 2d
+        + (width / 2d - offsetX) / 1.4142, height / 2d - (height / 2d - offsetY) / 1.4142));
+
+    return new ImageIcon(image);
   }
 }

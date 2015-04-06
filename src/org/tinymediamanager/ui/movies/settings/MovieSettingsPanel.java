@@ -15,31 +15,10 @@
  */
 package org.tinymediamanager.ui.movies.settings;
 
-import java.awt.Cursor;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.File;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
-import javax.swing.border.TitledBorder;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
@@ -57,15 +36,23 @@ import org.tinymediamanager.core.movie.connector.MovieConnectors;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.scraper.trakttv.ClearTraktTvTask;
+import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.UTF8Control;
+import org.tinymediamanager.ui.components.RoundScrollPane;
 import org.tinymediamanager.ui.components.ScrollablePanel;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class MovieSettingsPanel.
@@ -186,7 +173,7 @@ public class MovieSettingsPanel extends ScrollablePanel {
     add(panelMovieDataSources, "2, 4, fill, fill");
     panelMovieDataSources.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,
         FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(72dlu;default):grow"),
-        FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px"), FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
+        FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px:grow"), FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
         FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("100px:grow"),
         FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
         FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
@@ -246,9 +233,9 @@ public class MovieSettingsPanel extends ScrollablePanel {
 
     JTextPane tpMultipleMoviesHint = new JTextPane();
     TmmFontHelper.changeFont(tpMultipleMoviesHint, 0.833);
-    tpMultipleMoviesHint.setBackground(UIManager.getColor("Panel.background"));
+    tpMultipleMoviesHint.setOpaque(false);
     tpMultipleMoviesHint.setText(BUNDLE.getString("Settings.multipleMovies.hint")); //$NON-NLS-1$
-    tpMultipleMoviesHint.setEditable(false);
+    tpMultipleMoviesHint.setFocusable(false);
     panelMovieDataSources.add(tpMultipleMoviesHint, "6, 4, 5, 1, fill, fill");
 
     JSeparator separator_1 = new JSeparator();
@@ -273,23 +260,42 @@ public class MovieSettingsPanel extends ScrollablePanel {
     panelBadWords.setBorder(new TitledBorder(null, BUNDLE.getString("Settings.movie.badwords"), TitledBorder.LEADING, TitledBorder.TOP, null, null)); //$NON-NLS-1$
     add(panelBadWords, "4, 2, 1, 3, fill, fill");
     panelBadWords.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("50px:grow"),
-        FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC,
-        FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC,
-        FormFactory.DEFAULT_ROWSPEC, }));
+        FormFactory.DEFAULT_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
+        FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+        FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
 
     JTextPane txtpntBadWordsHint = new JTextPane();
-    txtpntBadWordsHint.setBackground(UIManager.getColor("Panel.background"));
+    txtpntBadWordsHint.setOpaque(false);
+    txtpntBadWordsHint.setFocusable(false);
     txtpntBadWordsHint.setText(BUNDLE.getString("Settings.movie.badwords.hint")); //$NON-NLS-1$
     TmmFontHelper.changeFont(txtpntBadWordsHint, 0.833);
     panelBadWords.add(txtpntBadWordsHint, "2, 2, 3, 1, fill, default");
 
-    JScrollPane scpBadWords = new JScrollPane();
-    panelBadWords.add(scpBadWords, "2, 4, fill, fill");
+    JScrollPane scpBadWords = new RoundScrollPane();
+    panelBadWords.add(scpBadWords, "2, 4, 3, 1, fill, fill");
 
     listBadWords = new JList();
     scpBadWords.setViewportView(listBadWords);
 
-    JButton btnRemoveBadWord = new JButton(BUNDLE.getString("Button.remove")); //$NON-NLS-1$
+    tfAddBadword = new JTextField();
+    tfAddBadword.setColumns(10);
+    panelBadWords.add(tfAddBadword, "2, 6, fill, default");
+
+    JButton btnAddBadWord = new JButton(IconManager.LIST_ADD);
+    TmmUIHelper.setFlatStyleButton(btnAddBadWord);
+    btnAddBadWord.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (StringUtils.isNotEmpty(tfAddBadword.getText())) {
+          MovieModuleManager.MOVIE_SETTINGS.addBadWord(tfAddBadword.getText());
+          tfAddBadword.setText("");
+        }
+      }
+    });
+    panelBadWords.add(btnAddBadWord, "3, 6");
+
+    JButton btnRemoveBadWord = new JButton(IconManager.LIST_REMOVE);
+    TmmUIHelper.setFlatStyleButton(btnRemoveBadWord);
     btnRemoveBadWord.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent arg0) {
@@ -300,23 +306,7 @@ public class MovieSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelBadWords.add(btnRemoveBadWord, "4, 4, default, bottom");
-
-    tfAddBadword = new JTextField();
-    tfAddBadword.setColumns(10);
-    panelBadWords.add(tfAddBadword, "2, 6, fill, default");
-
-    JButton btnAddBadWord = new JButton(BUNDLE.getString("Button.add")); //$NON-NLS-1$
-    btnAddBadWord.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (StringUtils.isNotEmpty(tfAddBadword.getText())) {
-          MovieModuleManager.MOVIE_SETTINGS.addBadWord(tfAddBadword.getText());
-          tfAddBadword.setText("");
-        }
-      }
-    });
-    panelBadWords.add(btnAddBadWord, "4, 6");
+    panelBadWords.add(btnRemoveBadWord, "4, 6, default, bottom");
 
     initDataBindings();
 

@@ -15,18 +15,11 @@
  */
 package org.tinymediamanager.ui.dialogs;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JRootPane;
-import javax.swing.KeyStroke;
-
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmWindowSaver;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
 
 /**
  * The class TmmDialog. The abstract super class to handle all dialogs in tMM
@@ -37,11 +30,12 @@ public abstract class TmmDialog extends JDialog {
   private static final long serialVersionUID = 1L;
 
   public TmmDialog(String title, String id) {
-    super();
+    super(MainWindow.getActiveInstance());
     setTitle(title);
     setName(id);
     setIconImage(MainWindow.LOGO);
     setModal(true);
+    setModalityType(ModalityType.APPLICATION_MODAL);
   }
 
   @Override

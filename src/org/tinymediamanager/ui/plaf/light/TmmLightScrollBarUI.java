@@ -15,21 +15,12 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import com.jtattoo.plaf.AbstractLookAndFeel;
 
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JScrollBar;
+import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicScrollBarUI;
-
-import com.jtattoo.plaf.AbstractLookAndFeel;
+import java.awt.*;
 
 /**
  * The Class TmmLightScrollBarUI.
@@ -46,6 +37,8 @@ public class TmmLightScrollBarUI extends BasicScrollBarUI {
 
   protected static int   GAP              = 4;
 
+  protected boolean      swapColors;
+
   public static ComponentUI createUI(JComponent c) {
     return new TmmLightScrollBarUI();
   }
@@ -57,6 +50,14 @@ public class TmmLightScrollBarUI extends BasicScrollBarUI {
   @Override
   protected void installDefaults() {
     super.installDefaults();
+
+    Object swapColors = scrollbar.getClientProperty("swapColors");
+    if (swapColors != null && "true".equals(swapColors.toString())) {
+      this.swapColors = true;
+    }
+    else {
+      this.swapColors = false;
+    }
   }
 
   @Override
@@ -122,7 +123,14 @@ public class TmmLightScrollBarUI extends BasicScrollBarUI {
     }
 
     // background
-    c.setBackground(AbstractLookAndFeel.getTheme().getBackgroundColor());
+    if (swapColors) {
+      c.setBackground(TRACK_COLOR);
+      g.setColor(AbstractLookAndFeel.getTheme().getBackgroundColorDark());
+    }
+    else {
+      c.setBackground(AbstractLookAndFeel.getTheme().getBackgroundColor());
+      g.setColor(TRACK_COLOR);
+    }
 
     // track
     Graphics2D g2D = (Graphics2D) g;
@@ -132,12 +140,10 @@ public class TmmLightScrollBarUI extends BasicScrollBarUI {
 
     if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
       int x = (SCROLL_BAR_WIDTH - TRACK_WIDTH) / 2;
-      g.setColor(TRACK_COLOR);
       g.fillRoundRect(trackBounds.x + x, trackBounds.y, TRACK_WIDTH, trackBounds.height, TRACK_WIDTH, TRACK_WIDTH);
     }
     else {
       int y = (SCROLL_BAR_WIDTH - TRACK_WIDTH) / 2;
-      g.setColor(TRACK_COLOR);
       g.fillRoundRect(trackBounds.x, trackBounds.y + y, trackBounds.width, TRACK_WIDTH, TRACK_WIDTH, TRACK_WIDTH);
     }
 
@@ -158,14 +164,19 @@ public class TmmLightScrollBarUI extends BasicScrollBarUI {
     RenderingHints savedRenderingHints = g2D.getRenderingHints();
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+    if (swapColors) {
+      g.setColor(TRACK_COLOR);
+    }
+    else {
+      g.setColor(THUMB_COLOR);
+    }
+
     if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
       int x = (SCROLL_BAR_WIDTH - TRACK_WIDTH) / 2;
-      g.setColor(THUMB_COLOR);
       g.fillRoundRect(x + 1, 2, TRACK_WIDTH - 2, thumbBounds.height - 4, TRACK_WIDTH - 2, TRACK_WIDTH - 2);
     }
     else {
       int y = (SCROLL_BAR_WIDTH - TRACK_WIDTH) / 2;
-      g.setColor(THUMB_COLOR);
       g.fillRoundRect(2, y + 1, thumbBounds.width - 4, TRACK_WIDTH - 2, TRACK_WIDTH - 2, TRACK_WIDTH - 2);
     }
 

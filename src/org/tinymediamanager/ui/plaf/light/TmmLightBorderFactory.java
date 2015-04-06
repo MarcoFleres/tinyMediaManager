@@ -15,9 +15,9 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import javax.swing.border.Border;
-
 import com.jtattoo.plaf.AbstractBorderFactory;
+
+import javax.swing.border.Border;
 
 public class TmmLightBorderFactory implements AbstractBorderFactory {
   private static TmmLightBorderFactory instance = null;
@@ -125,5 +125,9 @@ public class TmmLightBorderFactory implements AbstractBorderFactory {
   @Override
   public Border getDesktopIconBorder() {
     return TmmLightBorders.getDesktopIconBorder();
+  }
+
+  public Border getTitledBorder() {
+    return TmmLightBorders.getTitledBorder();
   }
 }

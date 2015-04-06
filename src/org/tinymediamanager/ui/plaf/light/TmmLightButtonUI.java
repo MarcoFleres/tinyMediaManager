@@ -15,32 +15,19 @@
  */
 package org.tinymediamanager.ui.plaf.light;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-
-import javax.swing.AbstractButton;
-import javax.swing.ButtonModel;
-import javax.swing.JComponent;
-import javax.swing.JMenuBar;
-import javax.swing.SwingUtilities;
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.basic.BasicHTML;
-import javax.swing.text.View;
-
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import com.jtattoo.plaf.BaseButtonUI;
 import com.jtattoo.plaf.ColorHelper;
 import com.jtattoo.plaf.JTattooUtilities;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.View;
+import java.awt.*;
 
 /**
  * @author Manuel Laggner
@@ -66,6 +53,10 @@ public class TmmLightButtonUI extends BaseButtonUI {
     if (prop != null && prop instanceof Boolean) {
       Boolean flat = (Boolean) prop;
       isFlatButton = flat;
+
+      if (isFlatButton) {
+        b.setBorder(new EmptyBorder(3, 6, 3, 6));
+      }
     }
 
     b.setOpaque(false);
@@ -236,6 +227,11 @@ public class TmmLightButtonUI extends BaseButtonUI {
     if (b.isFocusPainted() && b.hasFocus()) {
       paintFocus(g, b, viewRect, textRect, iconRect);
     }
+  }
+
+  public Dimension getPreferredSize(JComponent c) {
+    AbstractButton b = (AbstractButton) c;
+    return BasicGraphicsUtils.getPreferredButtonSize(b, b.getIconTextGap());
   }
 
   @SuppressWarnings("deprecation")

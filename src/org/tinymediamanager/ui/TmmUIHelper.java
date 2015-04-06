@@ -15,21 +15,8 @@
  */
 package org.tinymediamanager.ui;
 
-import java.awt.Desktop;
-import java.awt.FileDialog;
-import java.awt.Window;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.swing.JFileChooser;
-import javax.swing.LookAndFeel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-
+import chrriis.dj.nativeswing.swtimpl.components.JDirectoryDialog;
+import chrriis.dj.nativeswing.swtimpl.components.JFileDialog;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -38,8 +25,14 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.Globals;
 import org.tinymediamanager.ui.components.JNativeFileChooser;
 
-import chrriis.dj.nativeswing.swtimpl.components.JDirectoryDialog;
-import chrriis.dj.nativeswing.swtimpl.components.JFileDialog;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The Class TmmUIHelper.
@@ -378,5 +371,10 @@ public class TmmUIHelper {
     else {
       throw new Exception("open browser is not supported");
     }
+  }
+
+  public static void setFlatStyleButton(AbstractButton button){
+    button.putClientProperty("flatButton", true);
+    button.updateUI();
   }
 }
