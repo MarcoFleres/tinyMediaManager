@@ -63,7 +63,7 @@
         </javadoc>
     </target>
 
-    <target name="create_resource_jar">
+    <target name="create_resource_jar" description="create the resources.jar of the resource dir">
         <jar destfile="${lib.dir}/resources.jar" basedir="resources" includes="*/**" />
     </target>
 

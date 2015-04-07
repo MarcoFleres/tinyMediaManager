@@ -18,55 +18,48 @@ package org.tinymediamanager.ui.converter;
 import org.jdesktop.beansbinding.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tinymediamanager.scraper.Certification;
 
 import javax.swing.*;
 import java.net.URL;
 
 /**
- * The Class CertificationImageConverter.
+ * The class MediaInfoAspectRatioConverter.
  * 
  * @author Manuel Laggner
  */
-public class CertificationImageConverter extends Converter<Certification, Icon> {
-  private static final Logger   LOGGER     = LoggerFactory.getLogger(CertificationImageConverter.class);
+public class MediaInfoAspectRatioConverter extends Converter<Float, Icon> {
+  private static final Logger   LOGGER     = LoggerFactory.getLogger(MediaInfoAspectRatioConverter.class);
   public final static ImageIcon emptyImage = new ImageIcon();
 
   @Override
-  public Icon convertForward(Certification cert) {
-    if (cert == null){
+  public Icon convertForward(Float arg0) {
+    // try to get the image file
+
+    // a) return null if the aspect ratio is zero
+    if (arg0 == 0) {
       return null;
     }
 
-    // try to find an image for this genre
     try {
-      StringBuilder sb = new StringBuilder("/images/certifications/");
-      sb.append(cert.name().toLowerCase());
-      sb.append(".png");
+      String ratio = String.valueOf(arg0);
+      // try to load image
+      URL file = MediaInfoAspectRatioConverter.class.getResource("/images/mediainfo/aspect/" + ratio + ".png");
 
-      URL file = CertificationImageConverter.class.getResource(sb.toString());
-      if (file == null) {
-        // try to find the image without the country name in path
-        sb = new StringBuilder("/images/certifications/");
-        String certName = cert.name();
-        sb.append(certName.replace(cert.getCountry().getAlpha2() + "_", "").toLowerCase());
-        sb.append(".png");
-        file = CertificationImageConverter.class.getResource(sb.toString());
-      }
-
+      // return image
       if (file != null) {
         return new ImageIcon(file);
       }
     }
     catch (Exception e) {
-      LOGGER.warn("cannot convert certification", e);
+      LOGGER.warn(e.getMessage());
     }
 
+    // we did not get any file: return the empty
     return emptyImage;
   }
 
   @Override
-  public Certification convertReverse(Icon arg0) {
+  public Float convertReverse(Icon arg0) {
     return null;
   }
 

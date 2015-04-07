@@ -15,49 +15,35 @@
  */
 package org.tinymediamanager.ui.tvshows.panels.episode;
 
-import static org.tinymediamanager.core.Constants.*;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ResourceBundle;
-
-import javax.swing.Box;
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTextPane;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
+import org.tinymediamanager.core.Constants;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
-import org.tinymediamanager.scraper.Certification;
 import org.tinymediamanager.ui.ColumnLayout;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.ColumnImageLabel;
 import org.tinymediamanager.ui.components.ImageLabel.Position;
 import org.tinymediamanager.ui.components.StarRater;
-import org.tinymediamanager.ui.converter.CertificationImageConverter;
-import org.tinymediamanager.ui.converter.MediaInfoAudioCodecConverter;
-import org.tinymediamanager.ui.converter.MediaInfoVideoCodecConverter;
-import org.tinymediamanager.ui.converter.MediaInfoVideoFormatConverter;
 import org.tinymediamanager.ui.converter.WatchedIconConverter;
+import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.tvshows.TvShowEpisodeSelectionModel;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
+
+import static org.tinymediamanager.core.Constants.SEASON_POSTER;
+import static org.tinymediamanager.core.Constants.THUMB;
 
 /**
  * The Class TvShowEpisodeInformationPanel.
@@ -73,25 +59,18 @@ public class TvShowEpisodeInformationPanel extends JPanel {
   /** UI components */
   private JSplitPane                  splitPaneVertical;
   private JPanel                      panelTop;
-  private JPanel                      panelTvShowLogos;
   private StarRater                   panelRatingStars;
   private JLabel                      lblTvShowName;
   private JLabel                      lblRating;
   private JLabel                      lblVoteCount;
   private JLabel                      lblEpisodeTitle;
-  private JLabel                      lblCertificationImage;
   private ColumnImageLabel            lblEpisodeThumb;
   private ColumnImageLabel            lblSeasonPoster;
   private JPanel                      panelBottom;
   private JTextPane                   tpOverview;
-  private JPanel                      panelLogos;
+  private MediaInformationLogosPanel  panelLogos;
   private JPanel                      panelActors;
   private JPanel                      panelDetails;
-  private JPanel                      panelMediaInformation;
-  private JPanel                      panelMediaFiles;
-  private JLabel                      lblMediaLogoResolution;
-  private JLabel                      lblMediaLogoVideoCodec;
-  private JLabel                      lblMediaLogoAudio;
   private JPanel                      panelWatched;
   private JLabel                      lblWatched;
   private JPanel                      panelLeft;
@@ -191,12 +170,6 @@ public class TvShowEpisodeInformationPanel extends JPanel {
     lblEpisodeTitle = new JLabel();
     panelRatingTagline.add(lblEpisodeTitle, "1, 3, 3, 1, default, center");
 
-    panelTvShowLogos = new JPanel();
-    panelTvShowHeader.add(panelTvShowLogos, BorderLayout.EAST);
-
-    lblCertificationImage = new JLabel();
-    panelTvShowLogos.add(lblCertificationImage);
-
     JSeparator separator = new JSeparator();
     panelTop.add(separator, "2, 4, 3, 1");
 
@@ -205,19 +178,8 @@ public class TvShowEpisodeInformationPanel extends JPanel {
 
     panelTop.add(new JSeparator(), "2, 8, 3, 1");
 
-    panelLogos = new JPanel();
-    panelTop.add(panelLogos, "2, 10, 3, 1");
-    panelLogos.setOpaque(false);
-    panelLogos.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-
-    lblMediaLogoResolution = new JLabel("");
-    panelLogos.add(lblMediaLogoResolution);
-
-    lblMediaLogoVideoCodec = new JLabel("");
-    panelLogos.add(lblMediaLogoVideoCodec);
-
-    lblMediaLogoAudio = new JLabel("");
-    panelLogos.add(lblMediaLogoAudio);
+    panelLogos = new MediaInformationLogosPanel();
+    panelTop.add(panelLogos, "2, 10, 3, 1, left, default");
 
     panelTop.add(new JSeparator(), "2, 12, 3, 1");
 
@@ -255,10 +217,20 @@ public class TvShowEpisodeInformationPanel extends JPanel {
         String property = propertyChangeEvent.getPropertyName();
         Object source = propertyChangeEvent.getSource();
         // react on selection of a movie and change of a movie
-        if (source instanceof TvShowEpisodeSelectionModel) {
-          TvShowEpisodeSelectionModel model = (TvShowEpisodeSelectionModel) source;
-          setSeasonPoster(model.getSelectedTvShowEpisode());
-          setEpisodeThumb(model.getSelectedTvShowEpisode());
+        if (source instanceof TvShowEpisodeSelectionModel || (source instanceof TvShowEpisode && Constants.MEDIA_FILES.equals(property))) {
+          TvShowEpisode episode = null;
+          if (source instanceof TvShowEpisodeSelectionModel) {
+            TvShowEpisodeSelectionModel model = (TvShowEpisodeSelectionModel) source;
+            episode = model.getSelectedTvShowEpisode();
+
+          }
+          if (source instanceof TvShowEpisode) {
+            episode = (TvShowEpisode) source;
+          }
+
+          setSeasonPoster(episode);
+          setEpisodeThumb(episode);
+          panelLogos.setMediaInformationSource(episode);
         }
         if ((source.getClass() == TvShowEpisode.class && THUMB.equals(property))) {
           TvShowEpisode episode = (TvShowEpisode) source;
@@ -304,37 +276,9 @@ public class TvShowEpisodeInformationPanel extends JPanel {
         tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_4, lblRating, jLabelBeanProperty);
     autoBinding_5.bind();
     //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_6 = BeanProperty
-        .create("selectedTvShowEpisode.mediaInfoVideoFormat");
-    BeanProperty<JLabel, Icon> jLabelBeanProperty_1 = BeanProperty.create("icon");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, Icon> autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_6, lblMediaLogoResolution, jLabelBeanProperty_1);
-    autoBinding_7.setConverter(new MediaInfoVideoFormatConverter());
-    autoBinding_7.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_7 = BeanProperty
-        .create("selectedTvShowEpisode.mediaInfoVideoCodec");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, Icon> autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_7, lblMediaLogoVideoCodec, jLabelBeanProperty_1);
-    autoBinding_8.setConverter(new MediaInfoVideoCodecConverter());
-    autoBinding_8.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_8 = BeanProperty
-        .create("selectedTvShowEpisode.mediaInfoAudioCodecAndChannels");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, Icon> autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_8, lblMediaLogoAudio, jLabelBeanProperty_1);
-    autoBinding_9.setConverter(new MediaInfoAudioCodecConverter());
-    autoBinding_9.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, Certification> tvShowEpisodeSelectionModelBeanProperty_9 = BeanProperty
-        .create("selectedTvShowEpisode.tvShow.certification");
-    AutoBinding<TvShowEpisodeSelectionModel, Certification, JLabel, Icon> autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_9, lblCertificationImage, jLabelBeanProperty_1);
-    autoBinding_10.setConverter(new CertificationImageConverter());
-    autoBinding_10.bind();
-    //
     BeanProperty<TvShowEpisodeSelectionModel, Boolean> tvShowEpisodeSelectionModelBeanProperty_10 = BeanProperty
         .create("selectedTvShowEpisode.watched");
+    BeanProperty<JLabel, Icon> jLabelBeanProperty_1 = BeanProperty.create("icon");
     AutoBinding<TvShowEpisodeSelectionModel, Boolean, JLabel, Icon> autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ,
         tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_10, lblWatched, jLabelBeanProperty_1);
     autoBinding_11.setConverter(new WatchedIconConverter());

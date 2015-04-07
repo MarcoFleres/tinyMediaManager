@@ -15,7 +15,29 @@
  */
 package org.tinymediamanager.core.tvshow.entities;
 
-import static org.tinymediamanager.core.Constants.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tinymediamanager.core.Constants;
+import org.tinymediamanager.core.IMediaInformation;
+import org.tinymediamanager.core.MediaEntityImageFetcherTask;
+import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.Utils;
+import org.tinymediamanager.core.entities.MediaEntity;
+import org.tinymediamanager.core.entities.MediaFile;
+import org.tinymediamanager.core.threading.TmmTaskManager;
+import org.tinymediamanager.core.tvshow.TvShowList;
+import org.tinymediamanager.core.tvshow.TvShowMediaFileComparator;
+import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeToXbmcNfoConnector;
+import org.tinymediamanager.scraper.Certification;
+import org.tinymediamanager.scraper.MediaArtwork;
+import org.tinymediamanager.scraper.MediaArtwork.MediaArtworkType;
+import org.tinymediamanager.scraper.MediaCastMember;
+import org.tinymediamanager.scraper.MediaMetadata;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,35 +52,14 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.tinymediamanager.core.Constants;
-import org.tinymediamanager.core.MediaEntityImageFetcherTask;
-import org.tinymediamanager.core.MediaFileType;
-import org.tinymediamanager.core.Utils;
-import org.tinymediamanager.core.entities.MediaEntity;
-import org.tinymediamanager.core.entities.MediaFile;
-import org.tinymediamanager.core.threading.TmmTaskManager;
-import org.tinymediamanager.core.tvshow.TvShowList;
-import org.tinymediamanager.core.tvshow.TvShowMediaFileComparator;
-import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeToXbmcNfoConnector;
-import org.tinymediamanager.scraper.MediaArtwork;
-import org.tinymediamanager.scraper.MediaArtwork.MediaArtworkType;
-import org.tinymediamanager.scraper.MediaCastMember;
-import org.tinymediamanager.scraper.MediaMetadata;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static org.tinymediamanager.core.Constants.*;
 
 /**
  * The Class TvShowEpisode.
  * 
  * @author Manuel Laggner
  */
-public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpisode> {
+public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpisode>, IMediaInformation {
   private static final Logger LOGGER     = LoggerFactory.getLogger(TvShowEpisode.class);
 
   @JsonProperty
@@ -660,11 +661,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return episodes;
   }
 
-  /**
-   * Gets the media info video format (i.e. 720p).
-   * 
-   * @return the media info video format
-   */
   public String getMediaInfoVideoFormat() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
@@ -675,11 +671,6 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return "";
   }
 
-  /**
-   * Gets the media info video codec (i.e. divx)
-   * 
-   * @return the media info video codec
-   */
   public String getMediaInfoVideoCodec() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
@@ -690,19 +681,55 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     return "";
   }
 
-  /**
-   * Gets the media info audio codec (i.e mp3) and channels (i.e. 6 at 5.1 sound)
-   * 
-   * @return the media info audio codec
-   */
-  public String getMediaInfoAudioCodecAndChannels() {
+  public String getMediaInfoAudioCodec() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
       MediaFile mediaFile = videos.get(0);
-      return mediaFile.getAudioCodec() + "_" + mediaFile.getAudioChannels();
+      return mediaFile.getAudioCodec();
     }
 
     return "";
+  }
+
+  public int getMediaInfoAudioChannels() {
+    List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
+    if (videos.size() > 0) {
+      MediaFile mediaFile = videos.get(0);
+      try {
+        String channels = mediaFile.getAudioChannels().replace("ch","");
+        return Integer.parseInt(channels);
+      }
+      catch (NumberFormatException ignored) {
+      }
+    }
+
+    return 0;
+  }
+
+  public float getMediaInfoAspectRatio() {
+    List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
+    if (videos.size() > 0) {
+      MediaFile mediaFile = videos.get(0);
+      return mediaFile.getAspectRatio();
+    }
+
+    return 0;
+  }
+
+  public boolean isVideoIn3D() {
+    String video3DFormat = "";
+    List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
+    if (videos.size() > 0) {
+      MediaFile mediaFile = videos.get(0);
+      video3DFormat = mediaFile.getVideo3DFormat();
+    }
+
+    return StringUtils.isNotBlank(video3DFormat);
+  }
+
+  public Certification getCertification(){
+    // null for now until we support a per episode certification
+    return null;
   }
 
   /**

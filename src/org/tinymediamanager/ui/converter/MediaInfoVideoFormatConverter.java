@@ -15,34 +15,23 @@
  */
 package org.tinymediamanager.ui.converter;
 
-import java.net.URL;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import java.net.URL;
+
 /**
- * The Class ImageIconConverter.
+ * The Class MediaInfoVideoFormatConverter.
  * 
  * @author Manuel Laggner
  */
 public class MediaInfoVideoFormatConverter extends Converter<String, Icon> {
-
-  /** The Constant LOGGER. */
   private static final Logger   LOGGER     = LoggerFactory.getLogger(MediaInfoVideoFormatConverter.class);
-
-  /** The Constant emptyImage. */
   public final static ImageIcon emptyImage = new ImageIcon();
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.jdesktop.beansbinding.Converter#convertForward(java.lang.Object)
-   */
   @Override
   public Icon convertForward(String arg0) {
     // try to get the image file
@@ -98,11 +87,6 @@ public class MediaInfoVideoFormatConverter extends Converter<String, Icon> {
     return emptyImage;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.jdesktop.beansbinding.Converter#convertReverse(java.lang.Object)
-   */
   @Override
   public String convertReverse(Icon arg0) {
     return null;

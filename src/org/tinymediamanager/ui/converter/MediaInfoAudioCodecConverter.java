@@ -15,57 +15,35 @@
  */
 package org.tinymediamanager.ui.converter;
 
-import java.net.URL;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.beansbinding.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jdesktop.beansbinding.Converter;
+
+import javax.swing.*;
+import java.net.URL;
 
 /**
- * The Class ImageIconConverter.
+ * The Class MediaInfoAudioCodecConverter.
  * 
  * @author Manuel Laggner
  */
 public class MediaInfoAudioCodecConverter extends Converter<String, Icon> {
-
-  /** The Constant LOGGER. */
   private static final Logger   LOGGER     = LoggerFactory.getLogger(MediaInfoAudioCodecConverter.class);
-
-  /** The Constant emptyImage. */
   public final static ImageIcon emptyImage = new ImageIcon();
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.jdesktop.beansbinding.Converter#convertForward(java.lang.Object)
-   */
   @Override
   public Icon convertForward(String arg0) {
     // try to get the image file
 
-    // a) return null if the Format is empty
+    // a) return null if the codec is empty
     if (StringUtils.isEmpty(arg0)) {
       return null;
     }
 
     try {
-      StringBuilder sb = new StringBuilder("/images/mediainfo/audio/");
-      sb.append(arg0.toLowerCase());
-      sb.append(".png");
-
+      StringBuilder sb = new StringBuilder("/images/mediainfo/audio/" + arg0.toLowerCase() + ".png");
       URL file = MediaInfoAudioCodecConverter.class.getResource(sb.toString());
-      if (file == null) {
-        // strip out channels info
-        String codec = arg0.replaceFirst("_.*ch", "");
-        sb = new StringBuilder("/images/mediainfo/audio/");
-        sb.append(codec.toLowerCase());
-        sb.append(".png");
-        file = MediaInfoAudioCodecConverter.class.getResource(sb.toString());
-      }
 
       if (file != null) {
         return new ImageIcon(file);
@@ -80,14 +58,8 @@ public class MediaInfoAudioCodecConverter extends Converter<String, Icon> {
     return emptyImage;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.jdesktop.beansbinding.Converter#convertReverse(java.lang.Object)
-   */
   @Override
   public String convertReverse(Icon arg0) {
     return null;
   }
-
 }

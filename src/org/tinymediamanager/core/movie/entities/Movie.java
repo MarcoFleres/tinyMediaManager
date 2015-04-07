@@ -15,23 +15,9 @@
  */
 package org.tinymediamanager.core.movie.entities;
 
-import static org.tinymediamanager.core.Constants.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.omertron.themoviedbapi.model.CollectionInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +27,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.Constants;
+import org.tinymediamanager.core.IMediaInformation;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
@@ -71,16 +58,29 @@ import org.tinymediamanager.scraper.MediaTrailer;
 import org.tinymediamanager.scraper.tmdb.TmdbMetadataProvider;
 import org.tinymediamanager.scraper.util.UrlUtil;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.omertron.themoviedbapi.model.CollectionInfo;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.tinymediamanager.core.Constants.*;
 
 /**
  * The main class for movies.
  * 
  * @author Manuel Laggner / Myron Boyle
  */
-public class Movie extends MediaEntity {
+public class Movie extends MediaEntity implements IMediaInformation {
   private static final Logger       LOGGER          = LoggerFactory.getLogger(Movie.class);
   private static final Date         INITIAL_DATE    = new Date(0);
 
@@ -1421,9 +1421,6 @@ public class Movie extends MediaEntity {
     this.newlyAdded = newlyAdded;
   }
 
-  /**
-   * Gets the media info video format (i.e. 720p).
-   */
   public String getMediaInfoVideoFormat() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
@@ -1434,9 +1431,6 @@ public class Movie extends MediaEntity {
     return "";
   }
 
-  /**
-   * Gets the media info video codec (i.e. divx)
-   */
   public String getMediaInfoVideoCodec() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
@@ -1447,22 +1441,39 @@ public class Movie extends MediaEntity {
     return "";
   }
 
-  /**
-   * Gets the media info audio codec (i.e mp3) and channels (i.e. 6 at 5.1 sound)
-   */
-  public String getMediaInfoAudioCodecAndChannels() {
+  public String getMediaInfoAudioCodec() {
     List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
     if (videos.size() > 0) {
       MediaFile mediaFile = videos.get(0);
-      return mediaFile.getAudioCodec() + "_" + mediaFile.getAudioChannels();
+      return mediaFile.getAudioCodec();
     }
 
     return "";
   }
 
-  public String getMediaInfoVideoResolution() {
+  public int getMediaInfoAudioChannels() {
+    List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
+    if (videos.size() > 0) {
+      MediaFile mediaFile = videos.get(0);
+      try {
+        String channels = mediaFile.getAudioChannels().replace("ch","");
+        return Integer.parseInt(channels);
+      }
+      catch (NumberFormatException ignored) {
+      }
+    }
 
-    return "";
+    return 0;
+  }
+
+  public float getMediaInfoAspectRatio() {
+    List<MediaFile> videos = getMediaFiles(MediaFileType.VIDEO);
+    if (videos.size() > 0) {
+      MediaFile mediaFile = videos.get(0);
+        return mediaFile.getAspectRatio();
+    }
+
+    return 0;
   }
 
   public void setSpokenLanguages(String newValue) {
