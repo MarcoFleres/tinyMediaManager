@@ -224,5 +224,11 @@ public class TvShowExporterDialog extends TmmDialog {
     AutoBinding<JList, Boolean, JCheckBox, Boolean> autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ, list, jListBeanProperty_3,
         chckbxTemplateWithDetail, jCheckBoxBeanProperty);
     autoBinding_3.bind();
+    //
+    bindings.add(jListBinding);
+    bindings.add(autoBinding);
+    bindings.add(autoBinding_1);
+    bindings.add(autoBinding_2);
+    bindings.add(autoBinding_3);
   }
 }

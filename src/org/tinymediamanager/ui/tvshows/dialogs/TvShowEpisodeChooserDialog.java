@@ -208,5 +208,8 @@ public class TvShowEpisodeChooserDialog extends TmmDialog implements ActionListe
     AutoBinding<JTable, String, JTextArea, String> autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, table, jTableBeanProperty, taPlot,
         jTextAreaBeanProperty);
     autoBinding.bind();
+    //
+    bindings.add(jTableBinding);
+    bindings.add(autoBinding);
   }
 }

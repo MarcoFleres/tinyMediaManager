@@ -492,6 +492,11 @@ public class MovieSetChooserDialog extends TmmDialog implements ActionListener {
     AutoBinding<JTable, String, ImageLabel, String> autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ, tableMovieSets,
         jTableBeanProperty_2, lblMovieSetPoster, imageLabelBeanProperty);
     autoBinding_1.bind();
+    //
+    bindings.add(jTableBinding);
+    bindings.add(jTableBinding_1);
+    bindings.add(autoBinding);
+    bindings.add(autoBinding_1);
   }
 
   /**

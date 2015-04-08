@@ -582,6 +582,11 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
     AutoBinding<JTable, String, JTextArea, String> autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ, table, jTableBeanProperty_3,
         lblTvShowName, jTextAreaBeanProperty_1);
     autoBinding_3.bind();
+    //
+    bindings.add(jTableBinding);
+    bindings.add(autoBinding_1);
+    bindings.add(autoBinding_2);
+    bindings.add(autoBinding_3);
   }
 
   /**

@@ -15,11 +15,21 @@
  */
 package org.tinymediamanager.ui.dialogs;
 
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
+
+import org.jdesktop.beansbinding.Binding;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmWindowSaver;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 
 /**
  * The class TmmDialog. The abstract super class to handle all dialogs in tMM
@@ -27,7 +37,9 @@ import java.awt.event.ActionEvent;
  * @author Manuel Laggner
  */
 public abstract class TmmDialog extends JDialog {
-  private static final long serialVersionUID = 1L;
+  private static final long           serialVersionUID = 1L;
+
+  protected List<Binding<?, ?, ?, ?>> bindings;
 
   public TmmDialog(String title, String id) {
     super(MainWindow.getActiveInstance());
@@ -36,6 +48,7 @@ public abstract class TmmDialog extends JDialog {
     setIconImage(MainWindow.LOGO);
     setModal(true);
     setModalityType(ModalityType.APPLICATION_MODAL);
+    bindings = new ArrayList<>();
   }
 
   @Override
@@ -67,8 +80,28 @@ public abstract class TmmDialog extends JDialog {
       super.setVisible(true);
     }
     else {
+      for (Binding<?, ?, ?, ?> binding : bindings) {
+        if (binding.isBound()) {
+          binding.unbind();
+        }
+      }
+
+      bindings.clear();
+
       super.setVisible(false);
       dispose();
+    }
+  }
+
+  /**
+   * safely unbind bindings
+   * 
+   * @param binding
+   *          to be unbound
+   */
+  protected void safeUnbind(Binding<?, ?, ?, ?> binding) {
+    if (binding != null && binding.isBound()) {
+      binding.unbind();
     }
   }
 }

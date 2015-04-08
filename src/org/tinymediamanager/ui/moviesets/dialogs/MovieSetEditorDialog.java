@@ -562,6 +562,8 @@ public class MovieSetEditorDialog extends TmmDialog {
     //
     jTableBinding.setEditable(false);
     jTableBinding.bind();
+    //
+    bindings.add(jTableBinding);
   }
 
   private class SwingAction extends AbstractAction {
