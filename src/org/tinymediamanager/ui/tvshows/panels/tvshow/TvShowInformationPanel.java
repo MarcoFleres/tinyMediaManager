@@ -15,24 +15,10 @@
  */
 package org.tinymediamanager.ui.tvshows.panels.tvshow;
 
-import static org.tinymediamanager.core.Constants.*;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ResourceBundle;
-
-import javax.swing.Box;
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTextPane;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -48,10 +34,13 @@ import org.tinymediamanager.ui.components.StarRater;
 import org.tinymediamanager.ui.converter.CertificationImageConverter;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
+
+import static org.tinymediamanager.core.Constants.*;
 
 /**
  * The Class TvShowInformationPanel.
@@ -99,6 +88,7 @@ public class TvShowInformationPanel extends JPanel {
 
     panelLeft = new JPanel();
     panelLeft.setLayout(new ColumnLayout());
+    add(panelLeft, "2, 2, fill, fill");
 
     lblTvShowPoster = new ColumnImageLabel(false);
     lblTvShowPoster.setDefaultAspectRatio(2 / 3f);
@@ -125,11 +115,6 @@ public class TvShowInformationPanel extends JPanel {
     lblTvShowBanner.enableLightbox();
     lblBannerSize = new JLabel(BUNDLE.getString("mediafiletype.banner")); //$NON-NLS-1$
     panelLeft.add(lblBannerSize);
-
-    JScrollPane scrollPaneLeft = new JScrollPane(panelLeft);
-    scrollPaneLeft.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    scrollPaneLeft.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    add(scrollPaneLeft, "2, 2, fill, fill");
 
     panelRight = new JPanel();
     add(panelRight, "4, 2, fill, fill");

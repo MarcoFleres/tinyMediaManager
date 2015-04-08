@@ -15,24 +15,10 @@
  */
 package org.tinymediamanager.ui.movies.panels;
 
-import static org.tinymediamanager.core.Constants.*;
-
-import java.awt.Dimension;
-import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ResourceBundle;
-
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -48,10 +34,13 @@ import org.tinymediamanager.ui.converter.VoteCountConverter;
 import org.tinymediamanager.ui.movies.MovieSelectionModel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
+
+import static org.tinymediamanager.core.Constants.*;
 
 /**
  * The Class MovieInformationPanel.
@@ -115,6 +104,7 @@ public class MovieInformationPanel extends JPanel {
 
     panelLeft = new JPanel();
     panelLeft.setLayout(new ColumnLayout());
+    add(panelLeft, "2, 2, 1, 4, fill, fill");
 
     lblMoviePoster = new ColumnImageLabel(false);
     lblMoviePoster.setDefaultAspectRatio(2 / 3f);
@@ -132,11 +122,6 @@ public class MovieInformationPanel extends JPanel {
     lblMovieFanart.enableLightbox();
     lblFanartSize = new JLabel(BUNDLE.getString("mediafiletype.fanart")); //$NON-NLS-1$
     panelLeft.add(lblFanartSize);
-
-    JScrollPane scrollPaneLeft = new JScrollPane(panelLeft);
-    scrollPaneLeft.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    scrollPaneLeft.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    add(scrollPaneLeft, "2, 2, 1, 4, fill, fill");
 
     panelTopRight = new JPanel();
     add(panelTopRight, "4, 2, fill, fill");

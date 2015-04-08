@@ -15,7 +15,7 @@ package org.tinymediamanager.ui.components;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.awt.Dimension;
+import java.awt.*;
 
 /**
  * The class ColumnImageLabel. To create same width ImageLabels for a column view
