@@ -15,30 +15,10 @@
  */
 package org.tinymediamanager.ui.moviesets.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.border.EmptyBorder;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -68,10 +48,17 @@ import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class MovieSetEditorDialog. Edit movie sets
@@ -203,13 +190,22 @@ public class MovieSetEditorDialog extends TmmDialog {
     tableMovies = new JTable();
     scrollPaneMovies.setViewportView(tableMovies);
 
-    JButton btnRemoveMovie = new JButton("");
-    btnRemoveMovie.setAction(actionRemoveMovie);
-    panelContent.add(btnRemoveMovie, "2, 10, right, top");
+    JToolBar toolbarMovie = new JToolBar();
+    toolbarMovie.setFloatable(false);
+    toolbarMovie.setOrientation(JToolBar.VERTICAL);
+    panelContent.add(toolbarMovie, "2, 10, right, top");
 
-    JButton btnMoveMovieUp = new JButton("");
+    JButton btnRemoveMovie = new JButton();
+    btnRemoveMovie.setAction(actionRemoveMovie);
+    toolbarMovie.add(btnRemoveMovie);
+
+    JButton btnMoveMovieUp = new JButton();
     btnMoveMovieUp.setAction(actionMoveMovieUp);
-    panelContent.add(btnMoveMovieUp, "2, 12, right, top");
+    toolbarMovie.add(btnMoveMovieUp);
+
+    JButton btnMoveMovieDown = new JButton();
+    btnMoveMovieDown.setAction(actionMoveMovieDown);
+    toolbarMovie.add(btnMoveMovieDown);
 
     lblFanart = new ImageLabel();
     lblFanart.setAlternativeText(BUNDLE.getString("image.notfound.fanart")); //$NON-NLS-1$
@@ -231,10 +227,6 @@ public class MovieSetEditorDialog extends TmmDialog {
       }
     });
     panelContent.add(lblFanart, "8, 12, 1, 5, fill, fill");
-
-    JButton btnMoveMovieDown = new JButton("");
-    btnMoveMovieDown.setAction(actionMoveMovieDown);
-    panelContent.add(btnMoveMovieDown, "2, 14, right, top");
 
     /**
      * Artwork pane

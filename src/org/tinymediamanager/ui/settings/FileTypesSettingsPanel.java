@@ -15,10 +15,21 @@
  */
 package org.tinymediamanager.ui.settings;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.ResourceBundle;
+
+import javax.swing.JButton;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.JToolBar;
+import javax.swing.UIManager;
+import javax.swing.border.TitledBorder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -30,17 +41,14 @@ import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
-import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.RoundScrollPane;
 import org.tinymediamanager.ui.components.ScrollablePanel;
 
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-import java.util.ResourceBundle;
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 
 public class FileTypesSettingsPanel extends ScrollablePanel {
   private static final long           serialVersionUID = 9136097757447080369L;
@@ -74,11 +82,11 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
     panelVideoFiletypes.setBorder(new TitledBorder(
         UIManager.getBorder("TitledBorder.border"), BUNDLE.getString("Settings.videofiletypes"), TitledBorder.LEADING, TitledBorder.TOP, null, null)); //$NON-NLS-1$
     panelVideoFiletypes.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px:grow"),
-        FormFactory.DEFAULT_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
-        FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
+        FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC,
+        RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
 
     JScrollPane scrollPaneVideoFiletypes = new RoundScrollPane();
-    panelVideoFiletypes.add(scrollPaneVideoFiletypes, "2, 2, 3, 1, fill, fill");
+    panelVideoFiletypes.add(scrollPaneVideoFiletypes, "2, 2, 2, 1, fill, fill");
 
     listVideoFiletypes = new JList();
     scrollPaneVideoFiletypes.setViewportView(listVideoFiletypes);
@@ -88,7 +96,6 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
     tfVideoFiletype.setColumns(10);
 
     JButton btnAddVideoFiletype = new JButton(IconManager.LIST_ADD);
-    TmmUIHelper.setFlatStyleButton(btnAddVideoFiletype);
     btnAddVideoFiletype.setToolTipText(BUNDLE.getString("Button.add")); //$NON-NLS-1$
     btnAddVideoFiletype.addActionListener(new ActionListener() {
       @Override
@@ -100,11 +107,9 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
       }
     });
 
-    panelVideoFiletypes.add(btnAddVideoFiletype, "3, 4");
     add(panelVideoFiletypes, "2, 2, fill, fill");
 
     JButton btnRemoveVideoFiletype = new JButton(IconManager.LIST_REMOVE);
-    TmmUIHelper.setFlatStyleButton(btnRemoveVideoFiletype);
     btnRemoveVideoFiletype.setToolTipText(BUNDLE.getString("Button.remove")); //$NON-NLS-1$
     btnRemoveVideoFiletype.addActionListener(new ActionListener() {
       @Override
@@ -116,17 +121,21 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelVideoFiletypes.add(btnRemoveVideoFiletype, "4, 4, default, bottom");
+    JToolBar toolbarVideoFileType = new JToolBar();
+    toolbarVideoFileType.setFloatable(false);
+    toolbarVideoFileType.add(btnAddVideoFiletype);
+    toolbarVideoFileType.add(btnRemoveVideoFiletype);
+    panelVideoFiletypes.add(toolbarVideoFileType, "3, 4");
 
     panelSubtitleFiletypes = new JPanel();
     add(panelSubtitleFiletypes, "4, 2, fill, fill");
     panelSubtitleFiletypes.setBorder(new TitledBorder(
         UIManager.getBorder("TitledBorder.border"), BUNDLE.getString("Settings.extrafiletypes"), TitledBorder.LEADING, TitledBorder.TOP, null, null)); //$NON-NLS-1$
     panelSubtitleFiletypes.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px:grow"),
-        FormFactory.DEFAULT_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
-        FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
+        FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC,
+        RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
     JScrollPane scrollPaneSubtitleFiletypes = new RoundScrollPane();
-    panelSubtitleFiletypes.add(scrollPaneSubtitleFiletypes, "2, 2, 3, 1, fill, fill");
+    panelSubtitleFiletypes.add(scrollPaneSubtitleFiletypes, "2, 2, 2, 1, fill, fill");
 
     listSubtitleFiletypes = new JList();
     scrollPaneSubtitleFiletypes.setViewportView(listSubtitleFiletypes);
@@ -136,7 +145,6 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
     tfSubtitleFiletype.setColumns(10);
 
     JButton btnAddSubtitleFiletype = new JButton(IconManager.LIST_ADD);
-    TmmUIHelper.setFlatStyleButton(btnAddSubtitleFiletype);
     btnAddSubtitleFiletype.setToolTipText(BUNDLE.getString("Button.add")); //$NON-NLS-1$
     btnAddSubtitleFiletype.addActionListener(new ActionListener() {
       @Override
@@ -147,10 +155,8 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelSubtitleFiletypes.add(btnAddSubtitleFiletype, "3, 4");
 
     JButton btnRemoveSubtitleFiletype = new JButton(IconManager.LIST_REMOVE);
-    TmmUIHelper.setFlatStyleButton(btnRemoveSubtitleFiletype);
     btnRemoveSubtitleFiletype.setToolTipText(BUNDLE.getString("Button.remove")); //$NON-NLS-1$
     btnRemoveSubtitleFiletype.addActionListener(new ActionListener() {
       @Override
@@ -162,17 +168,21 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelSubtitleFiletypes.add(btnRemoveSubtitleFiletype, "4, 4, default, bottom");
+    JToolBar toolbarSubtitleFileType = new JToolBar();
+    toolbarSubtitleFileType.setFloatable(false);
+    toolbarSubtitleFileType.add(btnAddSubtitleFiletype);
+    toolbarSubtitleFileType.add(btnRemoveSubtitleFiletype);
+    panelSubtitleFiletypes.add(toolbarSubtitleFileType, "3, 4");
 
     panelAudioFiletypes = new JPanel();
     add(panelAudioFiletypes, "6, 2, fill, fill");
     panelAudioFiletypes.setBorder(new TitledBorder(
         UIManager.getBorder("TitledBorder.border"), BUNDLE.getString("Settings.audiofiletypes"), TitledBorder.LEADING, TitledBorder.TOP, null, null)); //$NON-NLS-1$
     panelAudioFiletypes.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px:grow"),
-        FormFactory.DEFAULT_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
-        FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
+        FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC,
+        RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
     JScrollPane scrollPaneAudioFiletypes = new RoundScrollPane();
-    panelAudioFiletypes.add(scrollPaneAudioFiletypes, "2, 2, 3, 1, fill, fill");
+    panelAudioFiletypes.add(scrollPaneAudioFiletypes, "2, 2, 2, 1, fill, fill");
 
     listAudioFiletypes = new JList();
     scrollPaneAudioFiletypes.setViewportView(listAudioFiletypes);
@@ -182,7 +192,6 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
     tfAudioFiletype.setColumns(10);
 
     JButton btnAddAudioFiletype = new JButton(IconManager.LIST_ADD);
-    TmmUIHelper.setFlatStyleButton(btnAddAudioFiletype);
     btnAddAudioFiletype.setToolTipText(BUNDLE.getString("Button.add")); //$NON-NLS-1$
     btnAddAudioFiletype.addActionListener(new ActionListener() {
       @Override
@@ -193,10 +202,8 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelAudioFiletypes.add(btnAddAudioFiletype, "3, 4");
 
     JButton btnRemoveAudioFiletype = new JButton(IconManager.LIST_REMOVE);
-    TmmUIHelper.setFlatStyleButton(btnRemoveAudioFiletype);
     btnRemoveAudioFiletype.setToolTipText(BUNDLE.getString("Button.remove")); //$NON-NLS-1$
     btnRemoveAudioFiletype.addActionListener(new ActionListener() {
       @Override
@@ -208,29 +215,37 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelAudioFiletypes.add(btnRemoveAudioFiletype, "4, 4, default, bottom");
+    JToolBar toolbarAudioFileType = new JToolBar();
+    toolbarAudioFileType.setFloatable(false);
+    toolbarAudioFileType.add(btnAddAudioFiletype);
+    toolbarAudioFileType.add(btnRemoveAudioFiletype);
+    panelAudioFiletypes.add(toolbarAudioFileType, "3, 4");
 
     JPanel panelSortOptions = new JPanel();
     panelSortOptions.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), BUNDLE.getString("Settings.sorting"),
         TitledBorder.LEADING, TitledBorder.TOP, null, null)); //$NON-NLS-1$
     add(panelSortOptions, "2, 4, 3, 1, fill, fill");
     panelSortOptions.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
-        FormFactory.DEFAULT_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
-        FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
-        FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
+        FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
+        FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, }));
 
     JScrollPane scrollPaneSortPrefixes = new RoundScrollPane();
-    panelSortOptions.add(scrollPaneSortPrefixes, "2, 2, 3, 1, fill, fill");
+    panelSortOptions.add(scrollPaneSortPrefixes, "2, 2, 2, 1, fill, fill");
 
     listSortPrefixes = new JList();
     scrollPaneSortPrefixes.setViewportView(listSortPrefixes);
+
+    JTextPane tpSortingHints = new JTextPane();
+    TmmFontHelper.changeFont(tpSortingHints, 0.833);
+    tpSortingHints.setText(BUNDLE.getString("Settings.sorting.info")); //$NON-NLS-1$
+    tpSortingHints.setOpaque(false);
+    panelSortOptions.add(tpSortingHints, "5, 2, 1, 3, fill, fill");
 
     tfSortPrefix = new JTextField();
     panelSortOptions.add(tfSortPrefix, "2, 4, fill, default");
     tfSortPrefix.setColumns(10);
 
     JButton btnAddSortPrefix = new JButton(IconManager.LIST_ADD);
-    TmmUIHelper.setFlatStyleButton(btnAddSortPrefix);
     btnAddSortPrefix.setToolTipText(BUNDLE.getString("Button.add")); //$NON-NLS-1$
     btnAddSortPrefix.addActionListener(new ActionListener() {
       @Override
@@ -243,10 +258,8 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelSortOptions.add(btnAddSortPrefix, "3, 4");
 
     JButton btnRemoveSortPrefix = new JButton(IconManager.LIST_REMOVE);
-    TmmUIHelper.setFlatStyleButton(btnRemoveSortPrefix);
     btnRemoveSortPrefix.setToolTipText(BUNDLE.getString("Button.remove")); //$NON-NLS-1$
     btnRemoveSortPrefix.addActionListener(new ActionListener() {
       @Override
@@ -260,13 +273,11 @@ public class FileTypesSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelSortOptions.add(btnRemoveSortPrefix, "4, 4, default, bottom");
-
-    JTextPane tpSortingHints = new JTextPane();
-    TmmFontHelper.changeFont(tpSortingHints, 0.833);
-    tpSortingHints.setText(BUNDLE.getString("Settings.sorting.info")); //$NON-NLS-1$
-    tpSortingHints.setOpaque(false);
-    panelSortOptions.add(tpSortingHints, "2, 6, 2, 1, fill, fill");
+    JToolBar toolbarSortPrefix = new JToolBar();
+    toolbarSortPrefix.setFloatable(false);
+    toolbarSortPrefix.add(btnAddSortPrefix);
+    toolbarSortPrefix.add(btnRemoveSortPrefix);
+    panelSortOptions.add(toolbarSortPrefix, "3, 4");
 
     initDataBindings();
   }

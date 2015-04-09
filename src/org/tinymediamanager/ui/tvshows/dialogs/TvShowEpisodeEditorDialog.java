@@ -15,42 +15,10 @@
  */
 package org.tinymediamanager.ui.tvshows.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SpinnerDateModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingWorker;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -82,10 +50,22 @@ import org.tinymediamanager.ui.components.AutocompleteComboBox;
 import org.tinymediamanager.ui.components.ImageLabel;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The Class TvShowEpisodeScrapeDialog.
@@ -281,29 +261,39 @@ public class TvShowEpisodeEditorDialog extends TmmDialog implements ActionListen
       listTags = new JList();
       scrollPaneTags.setViewportView(listTags);
 
-      JButton btnAddActor = new JButton("");
-      btnAddActor.setMargin(new Insets(2, 2, 2, 2));
-      btnAddActor.setAction(new AddActorAction());
-      btnAddActor.setIcon(IconManager.LIST_ADD);
-      contentPanel.add(btnAddActor, "2, 24, right, top");
+      {
+        JToolBar toolbarActor = new JToolBar();
+        toolbarActor.setFloatable(false);
+        toolbarActor.setOrientation(JToolBar.VERTICAL);
+        contentPanel.add(toolbarActor, "2, 24, right, top");
 
-      JButton btnAddTag = new JButton("");
-      btnAddTag.setMargin(new Insets(2, 2, 2, 2));
-      btnAddTag.setAction(new AddTagAction());
-      btnAddTag.setIcon(IconManager.LIST_ADD);
-      contentPanel.add(btnAddTag, "10, 24, right, top");
+        JButton btnAddActor = new JButton();
+        btnAddActor.setAction(new AddActorAction());
+        btnAddActor.setIcon(IconManager.LIST_ADD);
+        toolbarActor.add(btnAddActor);
 
-      JButton btnRemoveActor = new JButton("");
-      btnRemoveActor.setMargin(new Insets(2, 2, 2, 2));
-      btnRemoveActor.setAction(new RemoveActorAction());
-      btnRemoveActor.setIcon(IconManager.LIST_REMOVE);
-      contentPanel.add(btnRemoveActor, "2, 26, right, top");
+        JButton btnRemoveActor = new JButton();
+        btnRemoveActor.setAction(new RemoveActorAction());
+        btnRemoveActor.setIcon(IconManager.LIST_REMOVE);
+        toolbarActor.add(btnRemoveActor);
+      }
 
-      JButton btnRemoveTag = new JButton("");
-      btnRemoveTag.setMargin(new Insets(2, 2, 2, 2));
-      btnRemoveTag.setAction(new RemoveTagAction());
-      btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
-      contentPanel.add(btnRemoveTag, "10, 26, right, top");
+      {
+        JToolBar toolbarTag = new JToolBar();
+        toolbarTag.setFloatable(false);
+        toolbarTag.setOrientation(JToolBar.VERTICAL);
+        contentPanel.add(toolbarTag, "10, 24, right, top");
+
+        JButton btnAddTag = new JButton();
+        btnAddTag.setAction(new AddTagAction());
+        btnAddTag.setIcon(IconManager.LIST_ADD);
+        toolbarTag.add(btnAddTag);
+
+        JButton btnRemoveTag = new JButton();
+        btnRemoveTag.setAction(new RemoveTagAction());
+        btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
+        toolbarTag.add(btnRemoveTag);
+      }
 
       cbTags = new AutocompleteComboBox(tvShowList.getTagsInEpisodes().toArray());
       cbTags.setEditable(true);

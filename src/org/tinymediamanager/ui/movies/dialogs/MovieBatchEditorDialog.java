@@ -15,25 +15,10 @@
  */
 package org.tinymediamanager.ui.movies.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.FlowLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.Movie;
@@ -49,10 +34,16 @@ import org.tinymediamanager.ui.components.AutocompleteComboBox;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetAddAction;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class MovieBatchEditor.
@@ -103,9 +94,11 @@ public class MovieBatchEditorDialog extends TmmDialog {
       cbGenres.setEditable(true);
       panelContent.add(cbGenres, "4, 2, fill, default");
 
-      JButton btnAddGenre = new JButton("");
+      JToolBar toolbarGenre = new JToolBar();
+      toolbarGenre.setFloatable(false);
+
+      JButton btnAddGenre = new JButton();
       btnAddGenre.setIcon(IconManager.LIST_ADD);
-      btnAddGenre.setMargin(new Insets(2, 2, 2, 2));
       btnAddGenre.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -132,11 +125,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnAddGenre, "6, 2");
+      toolbarGenre.add(btnAddGenre);
 
-      JButton btnRemoveGenre = new JButton("");
+      JButton btnRemoveGenre = new JButton();
       btnRemoveGenre.setIcon(IconManager.LIST_REMOVE);
-      btnRemoveGenre.setMargin(new Insets(2, 2, 2, 2));
       btnRemoveGenre.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -149,7 +141,8 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnRemoveGenre, "8, 2");
+      toolbarGenre.add(btnRemoveGenre);
+      panelContent.add(toolbarGenre, "6, 2");
 
       JLabel lblTags = new JLabel(BUNDLE.getString("metatag.tags")); //$NON-NLS-1$
       panelContent.add(lblTags, "2, 4, right, default");
@@ -158,9 +151,11 @@ public class MovieBatchEditorDialog extends TmmDialog {
       cbTags.setEditable(true);
       panelContent.add(cbTags, "4, 4, fill, default");
 
-      JButton btnAddTag = new JButton("");
+      JToolBar toolbarTag = new JToolBar();
+      toolbarTag.setFloatable(false);
+
+      JButton btnAddTag = new JButton();
       btnAddTag.setIcon(IconManager.LIST_ADD);
-      btnAddTag.setMargin(new Insets(2, 2, 2, 2));
       btnAddTag.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -173,11 +168,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnAddTag, "6, 4");
+      toolbarTag.add(btnAddTag);
 
-      JButton btnRemoveTag = new JButton("");
+      JButton btnRemoveTag = new JButton();
       btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
-      btnRemoveTag.setMargin(new Insets(2, 2, 2, 2));
       btnRemoveTag.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -190,7 +184,8 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnRemoveTag, "8, 4");
+      toolbarTag.add(btnRemoveTag);
+      panelContent.add(toolbarTag, "6, 4");
 
       JLabel lblCertification = new JLabel(BUNDLE.getString("metatag.certification")); //$NON-NLS-1$
       panelContent.add(lblCertification, "2, 6, right, default");
@@ -201,8 +196,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
       }
       panelContent.add(cbCertification, "4, 6, fill, default");
 
-      JButton btnCertification = new JButton("");
-      btnCertification.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarCertification = new JToolBar();
+      toolbarCertification.setFloatable(false);
+
+      JButton btnCertification = new JButton();
       btnCertification.setIcon(IconManager.APPLY);
       btnCertification.addActionListener(new ActionListener() {
         @Override
@@ -217,7 +214,8 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnCertification, "6, 6");
+      toolbarCertification.add(btnCertification);
+      panelContent.add(toolbarCertification, "6, 6");
 
       JLabel lblMovieSet = new JLabel(BUNDLE.getString("metatag.movieset")); //$NON-NLS-1$
       panelContent.add(lblMovieSet, "2, 8, right, default");
@@ -225,8 +223,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
       cbMovieSet = new JComboBox();
       panelContent.add(cbMovieSet, "4, 8, fill, default");
 
-      JButton btnSetMovieSet = new JButton("");
-      btnSetMovieSet.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarMovieSet = new JToolBar();
+      toolbarMovieSet.setFloatable(false);
+
+      JButton btnSetMovieSet = new JButton();
       btnSetMovieSet.setIcon(IconManager.APPLY);
       btnSetMovieSet.addActionListener(new ActionListener() {
         @Override
@@ -258,12 +258,12 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnSetMovieSet, "6, 8");
+      toolbarMovieSet.add(btnSetMovieSet);
 
-      JButton btnNewMovieset = new JButton("");
-      btnNewMovieset.setMargin(new Insets(2, 2, 2, 2));
+      JButton btnNewMovieset = new JButton();
       btnNewMovieset.setAction(new MovieSetAddAction(false));
-      panelContent.add(btnNewMovieset, "8, 8");
+      toolbarMovieSet.add(btnNewMovieset);
+      panelContent.add(toolbarMovieSet, "6, 8");
 
       JLabel lblWatched = new JLabel(BUNDLE.getString("metatag.watched")); //$NON-NLS-1$
       panelContent.add(lblWatched, "2, 10, right, default");
@@ -271,8 +271,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
       chckbxWatched = new JCheckBox("");
       panelContent.add(chckbxWatched, "4, 10");
 
-      JButton btnWatched = new JButton("");
-      btnWatched.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarWatched = new JToolBar();
+      toolbarWatched.setFloatable(false);
+
+      JButton btnWatched = new JButton();
       btnWatched.setIcon(IconManager.APPLY);
       btnWatched.addActionListener(new ActionListener() {
         @Override
@@ -285,7 +287,8 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnWatched, "6, 10");
+      toolbarWatched.add(btnWatched);
+      panelContent.add(toolbarWatched, "6, 10");
 
       JLabel lblVideo3D = new JLabel(BUNDLE.getString("metatag.3d")); //$NON-NLS-1$
       panelContent.add(lblVideo3D, "2, 12, right, default");
@@ -293,8 +296,10 @@ public class MovieBatchEditorDialog extends TmmDialog {
       final JCheckBox chckbxVideo3D = new JCheckBox("");
       panelContent.add(chckbxVideo3D, "4, 12");
 
-      JButton btnVideo3D = new JButton("");
-      btnVideo3D.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbar3D = new JToolBar();
+      toolbar3D.setFloatable(false);
+
+      JButton btnVideo3D = new JButton();
       btnVideo3D.setIcon(IconManager.APPLY);
       btnVideo3D.addActionListener(new ActionListener() {
         @Override
@@ -307,7 +312,8 @@ public class MovieBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelContent.add(btnVideo3D, "6, 12");
+      toolbar3D.add(btnVideo3D);
+      panelContent.add(toolbar3D, "6, 12");
     }
 
     {

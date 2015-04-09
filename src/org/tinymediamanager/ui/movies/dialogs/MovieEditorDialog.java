@@ -15,42 +15,10 @@
  */
 package org.tinymediamanager.ui.movies.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SpinnerDateModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -86,10 +54,22 @@ import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class MovieEditor.
@@ -486,60 +466,58 @@ public class MovieEditorDialog extends TmmDialog {
       scrollPane.setViewportView(tableProducers);
     }
     {
-      JButton btnAddActor = new JButton(BUNDLE.getString("cast.actor.add")); //$NON-NLS-1$
-      btnAddActor.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarActor = new JToolBar();
+      toolbarActor.setFloatable(false);
+      toolbarActor.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarActor, "2, 4, right, top");
+
+      JButton btnAddActor = new JButton();
+      btnAddActor.setToolTipText(BUNDLE.getString("cast.actor.add")); //$NON-NLS-1$
       btnAddActor.setAction(new AddActorAction());
       btnAddActor.setIcon(IconManager.LIST_ADD);
-      details2Panel.add(btnAddActor, "2, 4, right, top");
-    }
-    {
-      JButton btnAddProducer = new JButton((String) null);
-      btnAddProducer.setMargin(new Insets(2, 2, 2, 2));
-      btnAddProducer.setAction(new AddProducerAction());
-      btnAddProducer.setIcon(IconManager.LIST_ADD);
-      details2Panel.add(btnAddProducer, "6, 4, right, top");
-    }
-    {
-      JButton btnRemoveActor = new JButton(BUNDLE.getString("cast.actor.remove")); //$NON-NLS-1$
-      btnRemoveActor.setMargin(new Insets(2, 2, 2, 2));
+      toolbarActor.add(btnAddActor);
+
+      JButton btnRemoveActor = new JButton();
+      btnRemoveActor.setToolTipText(BUNDLE.getString("cast.actor.remove")); //$NON-NLS-1$
       btnRemoveActor.setAction(new RemoveActorAction());
       btnRemoveActor.setIcon(IconManager.LIST_REMOVE);
-      details2Panel.add(btnRemoveActor, "2,6, right, top");
-    }
-    {
-      JButton btnRemoveProducer = new JButton((String) null);
-      btnRemoveProducer.setMargin(new Insets(2, 2, 2, 2));
-      btnRemoveProducer.setAction(new RemoveProducerAction());
-      btnRemoveProducer.setIcon(IconManager.LIST_REMOVE);
-      details2Panel.add(btnRemoveProducer, "6, 6, right, top");
-    }
-    {
-      JButton btnMoveActorUp = new JButton((String) null);
-      btnMoveActorUp.setMargin(new Insets(2, 2, 2, 2));
+      toolbarActor.add(btnRemoveActor);
+
+      JButton btnMoveActorUp = new JButton();
       btnMoveActorUp.setAction(new MoveActorUpAction());
       btnMoveActorUp.setIcon(IconManager.ARROW_UP);
-      details2Panel.add(btnMoveActorUp, "2, 8, right, top");
-    }
-    {
-      JButton btnMoveProducerUp = new JButton((String) null);
-      btnMoveProducerUp.setMargin(new Insets(2, 2, 2, 2));
-      btnMoveProducerUp.setAction(new MoveProducerUpAction());
-      btnMoveProducerUp.setIcon(IconManager.ARROW_UP);
-      details2Panel.add(btnMoveProducerUp, "6, 8, right, top");
-    }
-    {
-      JButton btnMoveActorDown = new JButton((String) null);
-      btnMoveActorDown.setMargin(new Insets(2, 2, 2, 2));
+      toolbarActor.add(btnMoveActorUp);
+
+      JButton btnMoveActorDown = new JButton();
       btnMoveActorDown.setAction(new MoveActorDownAction());
       btnMoveActorDown.setIcon(IconManager.ARROW_DOWN);
-      details2Panel.add(btnMoveActorDown, "2, 10, right, top");
+      toolbarActor.add(btnMoveActorDown);
     }
     {
-      JButton btnMoveProducerDown = new JButton((String) null);
-      btnMoveProducerDown.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarProducer = new JToolBar();
+      toolbarProducer.setFloatable(false);
+      toolbarProducer.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarProducer, "6, 4, right, top");
+
+      JButton btnAddProducer = new JButton();
+      btnAddProducer.setAction(new AddProducerAction());
+      btnAddProducer.setIcon(IconManager.LIST_ADD);
+      toolbarProducer.add(btnAddProducer);
+
+      JButton btnRemoveProducer = new JButton();
+      btnRemoveProducer.setAction(new RemoveProducerAction());
+      btnRemoveProducer.setIcon(IconManager.LIST_REMOVE);
+      toolbarProducer.add(btnRemoveProducer);
+
+      JButton btnMoveProducerUp = new JButton();
+      btnMoveProducerUp.setAction(new MoveProducerUpAction());
+      btnMoveProducerUp.setIcon(IconManager.ARROW_UP);
+      toolbarProducer.add(btnMoveProducerUp);
+
+      JButton btnMoveProducerDown = new JButton();
       btnMoveProducerDown.setAction(new MoveProducerDownAction());
       btnMoveProducerDown.setIcon(IconManager.ARROW_DOWN);
-      details2Panel.add(btnMoveProducerDown, "6, 10, right, top");
+      toolbarProducer.add(btnMoveProducerDown);
     }
     {
       JLabel lblGenres = new JLabel(BUNDLE.getString("metatag.genre")); //$NON-NLS-1$
@@ -564,33 +542,36 @@ public class MovieEditorDialog extends TmmDialog {
       scrollPaneTags.setViewportView(listTags);
     }
     {
-      JButton btnAddGenre = new JButton("");
+      JToolBar toolbarGenre = new JToolBar();
+      toolbarGenre.setFloatable(false);
+      toolbarGenre.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarGenre, "2, 16, right, top");
+
+      JButton btnAddGenre = new JButton();
       btnAddGenre.setAction(new AddGenreAction());
       btnAddGenre.setIcon(IconManager.LIST_ADD);
-      btnAddGenre.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnAddGenre, "2, 16, right, top");
+      toolbarGenre.add(btnAddGenre);
+
+      JButton btnRemoveGenre = new JButton();
+      btnRemoveGenre.setAction(new RemoveGenreAction());
+      btnRemoveGenre.setIcon(IconManager.LIST_REMOVE);
+      toolbarGenre.add(btnRemoveGenre);
     }
     {
-      JButton btnAddTag = new JButton("");
+      JToolBar toolbarTag = new JToolBar();
+      toolbarTag.setFloatable(false);
+      toolbarTag.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarTag, "6, 16, right, top");
+
+      JButton btnAddTag = new JButton();
       btnAddTag.setAction(new AddTagAction());
       btnAddTag.setIcon(IconManager.LIST_ADD);
-      btnAddTag.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnAddTag, "6, 16, right, top");
-    }
+      toolbarTag.add(btnAddTag);
 
-    {
-      JButton btnRemoveGenre = new JButton("");
-      btnRemoveGenre.setAction(new RemoveGenreAction());
-      btnRemoveGenre.setMargin(new Insets(2, 2, 2, 2));
-      btnRemoveGenre.setIcon(IconManager.LIST_REMOVE);
-      details2Panel.add(btnRemoveGenre, "2, 18, right, top");
-    }
-    {
-      JButton btnRemoveTag = new JButton("");
+      JButton btnRemoveTag = new JButton();
       btnRemoveTag.setAction(new RemoveTagAction());
       btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
-      btnRemoveTag.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnRemoveTag, "6, 18, right, top");
+      toolbarTag.add(btnRemoveTag);
     }
     {
       // cbGenres = new JComboBox(MediaGenres2.values());
@@ -615,18 +596,20 @@ public class MovieEditorDialog extends TmmDialog {
       scrollPaneTrailer.setViewportView(tableTrailer);
     }
     {
-      JButton btnAddTrailer = new JButton("");
+      JToolBar toolbarTrailer = new JToolBar();
+      toolbarTrailer.setFloatable(false);
+      toolbarTrailer.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarTrailer, "2, 24, right, top");
+
+      JButton btnAddTrailer = new JButton();
       btnAddTrailer.setAction(new AddTrailerAction());
       btnAddTrailer.setIcon(IconManager.LIST_ADD);
-      btnAddTrailer.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnAddTrailer, "2, 24, right, top");
-    }
-    {
-      JButton btnRemoveTrailer = new JButton("");
+      toolbarTrailer.add(btnAddTrailer);
+
+      JButton btnRemoveTrailer = new JButton();
       btnRemoveTrailer.setAction(new RemoveTrailerAction());
       btnRemoveTrailer.setIcon(IconManager.LIST_REMOVE);
-      btnRemoveTrailer.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnRemoveTrailer, "2, 26, right, top");
+      toolbarTrailer.add(btnRemoveTrailer);
     }
 
     /**

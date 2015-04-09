@@ -15,29 +15,10 @@
  */
 package org.tinymediamanager.ui.tvshows.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.border.TitledBorder;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.tinymediamanager.Globals;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -51,10 +32,18 @@ import org.tinymediamanager.ui.UTF8Control;
 import org.tinymediamanager.ui.components.AutocompleteComboBox;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * The Class TvShowBatchEditorDialog.
@@ -111,15 +100,17 @@ public class TvShowBatchEditorDialog extends TmmDialog {
     panelTvShows.add(cbGenres, "4, 2");
     cbGenres.setEditable(true);
 
-    JButton btnAddGenre = new JButton("");
-    panelTvShows.add(btnAddGenre, "6, 2");
-    btnAddGenre.setIcon(IconManager.LIST_ADD);
-    btnAddGenre.setMargin(new Insets(2, 2, 2, 2));
+    JToolBar toolbarGenre = new JToolBar();
+    toolbarGenre.setFloatable(false);
 
-    JButton btnRemoveGenre = new JButton("");
-    panelTvShows.add(btnRemoveGenre, "8, 2");
+    JButton btnAddGenre = new JButton();
+    btnAddGenre.setIcon(IconManager.LIST_ADD);
+    toolbarGenre.add(btnAddGenre);
+
+    JButton btnRemoveGenre = new JButton();
     btnRemoveGenre.setIcon(IconManager.LIST_REMOVE);
-    btnRemoveGenre.setMargin(new Insets(2, 2, 2, 2));
+    toolbarGenre.add(btnRemoveGenre);
+    panelTvShows.add(toolbarGenre, "6, 2");
 
     JLabel lblTags = new JLabel("Tag");
     panelTvShows.add(lblTags, "2, 4, right, default");
@@ -128,15 +119,19 @@ public class TvShowBatchEditorDialog extends TmmDialog {
     panelTvShows.add(cbTags, "4, 4");
     cbTags.setEditable(true);
 
-    JButton btnAddTag = new JButton("");
-    panelTvShows.add(btnAddTag, "6, 4");
-    btnAddTag.setIcon(IconManager.LIST_ADD);
-    btnAddTag.setMargin(new Insets(2, 2, 2, 2));
+    JToolBar toolbarTag = new JToolBar();
+    toolbarTag.setFloatable(false);
 
-    JButton btnRemoveTag = new JButton("");
+    JButton btnAddTag = new JButton();
+    btnAddTag.setIcon(IconManager.LIST_ADD);
+    toolbarTag.add(btnAddTag);
+
+    JButton btnRemoveTag = new JButton();
     panelTvShows.add(btnRemoveTag, "8, 4");
     btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
-    btnRemoveTag.setMargin(new Insets(2, 2, 2, 2));
+    toolbarTag.add(btnRemoveTag);
+    panelTvShows.add(toolbarTag, "6, 4");
+
     btnRemoveTag.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -216,8 +211,10 @@ public class TvShowBatchEditorDialog extends TmmDialog {
       chckbxWatched = new JCheckBox("");
       panelTvShowEpisodes.add(chckbxWatched, "4, 2");
 
-      JButton btnWatched = new JButton("");
-      btnWatched.setMargin(new Insets(2, 2, 2, 2));
+      JToolBar toolbarWatched = new JToolBar();
+      toolbarWatched.setFloatable(false);
+
+      JButton btnWatched = new JButton();
       btnWatched.setIcon(IconManager.APPLY);
       btnWatched.addActionListener(new ActionListener() {
         @Override
@@ -230,7 +227,8 @@ public class TvShowBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelTvShowEpisodes.add(btnWatched, "6, 2");
+      toolbarWatched.add(btnWatched);
+      panelTvShowEpisodes.add(toolbarWatched, "6, 2");
 
       JLabel lblSeason = new JLabel(BUNDLE.getString("metatag.season"));//$NON-NLS-1$
       panelTvShowEpisodes.add(lblSeason, "2, 4, right, default");
@@ -240,9 +238,11 @@ public class TvShowBatchEditorDialog extends TmmDialog {
       spSeason.setMinimumSize(new Dimension(40, 20));
       panelTvShowEpisodes.add(spSeason, "4, 4, left, default");
 
-      JButton btnSeason = new JButton("");
+      JToolBar toolbarSeason = new JToolBar();
+      toolbarSeason.setFloatable(false);
+
+      JButton btnSeason = new JButton();
       btnSeason.setIcon(IconManager.APPLY);
-      btnSeason.setMargin(new Insets(2, 2, 2, 2));
       btnSeason.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
@@ -255,7 +255,8 @@ public class TvShowBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelTvShowEpisodes.add(btnSeason, "6, 4");
+      toolbarSeason.add(btnSeason);
+      panelTvShowEpisodes.add(toolbarSeason, "6, 4");
 
       JLabel lblDvdOrder = new JLabel(BUNDLE.getString("metatag.dvdorder"));//$NON-NLS-1$
       panelTvShowEpisodes.add(lblDvdOrder, "2, 6, right, default");
@@ -263,9 +264,11 @@ public class TvShowBatchEditorDialog extends TmmDialog {
       final JCheckBox cbDvdOrder = new JCheckBox("");
       panelTvShowEpisodes.add(cbDvdOrder, "4, 6");
 
-      JButton btnDvdOrder = new JButton("");
+      JToolBar toolbarDvdOrder = new JToolBar();
+      toolbarDvdOrder.setFloatable(false);
+
+      JButton btnDvdOrder = new JButton();
       btnDvdOrder.setIcon(IconManager.APPLY);
-      btnDvdOrder.setMargin(new Insets(2, 2, 2, 2));
       btnDvdOrder.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
@@ -277,7 +280,8 @@ public class TvShowBatchEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       });
-      panelTvShowEpisodes.add(btnDvdOrder, "6, 6");
+      toolbarDvdOrder.add(btnDvdOrder);
+      panelTvShowEpisodes.add(toolbarDvdOrder, "6, 6");
     }
 
     {

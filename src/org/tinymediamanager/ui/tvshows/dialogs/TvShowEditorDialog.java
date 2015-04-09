@@ -15,41 +15,10 @@
  */
 package org.tinymediamanager.ui.tvshows.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.AbstractAction;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SpinnerDateModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.border.EmptyBorder;
-
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
@@ -85,10 +54,21 @@ import org.tinymediamanager.ui.dialogs.ImageChooserDialog;
 import org.tinymediamanager.ui.dialogs.ImageChooserDialog.ImageType;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class TvShowEditor.
@@ -360,11 +340,24 @@ public class TvShowEditorDialog extends TmmDialog {
       details2Panel.add(lblGenres, "6, 2");
     }
     {
-      JButton btnAddActor = new JButton("Add Actor");
-      btnAddActor.setMargin(new Insets(2, 2, 2, 2));
-      btnAddActor.setAction(new AddActorAction());
-      btnAddActor.setIcon(IconManager.LIST_ADD);
-      details2Panel.add(btnAddActor, "2, 4, right, top");
+      {
+        JToolBar toolbarActor = new JToolBar();
+        toolbarActor.setFloatable(false);
+        toolbarActor.setOrientation(JToolBar.VERTICAL);
+        details2Panel.add(toolbarActor, "2, 4, right, top");
+
+        JButton btnAddActor = new JButton();
+        btnAddActor.setToolTipText(BUNDLE.getString("cast.actor.add")); //$NON-NLS-1$
+        btnAddActor.setAction(new AddActorAction());
+        btnAddActor.setIcon(IconManager.LIST_ADD);
+        toolbarActor.add(btnAddActor);
+
+        JButton btnRemoveActor = new JButton();
+        btnRemoveActor.setToolTipText(BUNDLE.getString("cast.actor.remove")); //$NON-NLS-1$
+        btnRemoveActor.setAction(new RemoveActorAction());
+        btnRemoveActor.setIcon(IconManager.LIST_REMOVE);
+        toolbarActor.add(btnRemoveActor);
+      }
     }
     {
       JScrollPane scrollPaneGenres = new JScrollPane();
@@ -375,26 +368,21 @@ public class TvShowEditorDialog extends TmmDialog {
       }
     }
     {
-      JButton btnAddGenre = new JButton("");
+
+      JToolBar toolbarGenre = new JToolBar();
+      toolbarGenre.setFloatable(false);
+      toolbarGenre.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarGenre, "6, 4, right, top");
+
+      JButton btnAddGenre = new JButton();
       btnAddGenre.setAction(new AddGenreAction());
       btnAddGenre.setIcon(IconManager.LIST_ADD);
-      btnAddGenre.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnAddGenre, "6, 4, right, top");
-    }
-    {
-      JButton btnRemoveActor = new JButton(BUNDLE.getString("cast.actor.remove")); //$NON-NLS-1$
-      btnRemoveActor.setMargin(new Insets(2, 2, 2, 2));
-      btnRemoveActor.setAction(new RemoveActorAction());
-      btnRemoveActor.setIcon(IconManager.LIST_REMOVE);
-      details2Panel.add(btnRemoveActor, "2,6, right, top");
-    }
+      toolbarGenre.add(btnAddGenre);
 
-    {
-      JButton btnRemoveGenre = new JButton("");
+      JButton btnRemoveGenre = new JButton();
       btnRemoveGenre.setAction(new RemoveGenreAction());
-      btnRemoveGenre.setMargin(new Insets(2, 2, 2, 2));
       btnRemoveGenre.setIcon(IconManager.LIST_REMOVE);
-      details2Panel.add(btnRemoveGenre, "6, 6, right, top");
+      toolbarGenre.add(btnRemoveGenre);
     }
     {
       cbGenres = new AutocompleteComboBox(MediaGenres.values());
@@ -402,30 +390,6 @@ public class TvShowEditorDialog extends TmmDialog {
       details2Panel.add(cbGenres, "8,8");
     }
 
-    // {
-    //      JLabel lblTrailer = new JLabel(BUNDLE.getString("metatag.trailer")); //$NON-NLS-1$
-    // details2Panel.add(lblTrailer, "2, 10, right, default");
-    // }
-    // {
-    // JScrollPane scrollPaneTrailer = new JScrollPane();
-    // details2Panel.add(scrollPaneTrailer, "4, 10, 5, 5");
-    // tableTrailer = new JTable();
-    // scrollPaneTrailer.setViewportView(tableTrailer);
-    // }
-    // {
-    // JButton btnAddTrailer = new JButton("");
-    // btnAddTrailer.setAction(new AddTrailerAction());
-    // btnAddTrailer.setIcon(IconManager.LIST_ADD);
-    // btnAddTrailer.setMargin(new Insets(2, 2, 2, 2));
-    // details2Panel.add(btnAddTrailer, "2, 12, right, top");
-    // }
-    // {
-    // JButton btnRemoveTrailer = new JButton("");
-    // btnRemoveTrailer.setAction(new RemoveTrailerAction());
-    // btnRemoveTrailer.setIcon(IconManager.LIST_REMOVE);
-    // btnRemoveTrailer.setMargin(new Insets(2, 2, 2, 2));
-    // details2Panel.add(btnRemoveTrailer, "2, 14, right, top");
-    // }
     {
       JLabel lblTags = new JLabel(BUNDLE.getString("metatag.tags")); //$NON-NLS-1$
       details2Panel.add(lblTags, "2, 10, right, default");
@@ -437,18 +401,20 @@ public class TvShowEditorDialog extends TmmDialog {
       scrollPaneTags.setViewportView(listTags);
     }
     {
-      JButton btnAddTag = new JButton("");
+      JToolBar toolbarTag = new JToolBar();
+      toolbarTag.setFloatable(false);
+      toolbarTag.setOrientation(JToolBar.VERTICAL);
+      details2Panel.add(toolbarTag, "2, 12, right, top");
+
+      JButton btnAddTag = new JButton();
       btnAddTag.setAction(new AddTagAction());
       btnAddTag.setIcon(IconManager.LIST_ADD);
-      btnAddTag.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnAddTag, "2, 12, right, top");
-    }
-    {
-      JButton btnRemoveTag = new JButton("");
+      toolbarTag.add(btnAddTag);
+
+      JButton btnRemoveTag = new JButton();
       btnRemoveTag.setAction(new RemoveTagAction());
       btnRemoveTag.setIcon(IconManager.LIST_REMOVE);
-      btnRemoveTag.setMargin(new Insets(2, 2, 2, 2));
-      details2Panel.add(btnRemoveTag, "2, 14, right, top");
+      toolbarTag.add(btnRemoveTag);
     }
     {
       cbTags = new AutocompleteComboBox(tvShowList.getTagsInTvShows().toArray());
@@ -530,11 +496,7 @@ public class TvShowEditorDialog extends TmmDialog {
     episodesPanel.setLayout(new FormLayout(new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,
         FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"), FormFactory.RELATED_GAP_COLSPEC, }, new RowSpec[] {
         FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), }));
-    {
-      JButton btnCloneEpisode = new JButton("");
-      btnCloneEpisode.setAction(new CloneEpisodeAction());
-      episodesPanel.add(btnCloneEpisode, "2, 2");
-    }
+
     {
       JScrollPane scrollPaneEpisodes = new JScrollPane();
       episodesPanel.add(scrollPaneEpisodes, "4, 2, 1, 3, fill, fill");
@@ -544,10 +506,19 @@ public class TvShowEditorDialog extends TmmDialog {
       }
     }
     {
-      JButton btnRemoveEpisode = new JButton("");
+      JToolBar toolbarEpisode = new JToolBar();
+      toolbarEpisode.setFloatable(false);
+      toolbarEpisode.setOrientation(JToolBar.VERTICAL);
+      episodesPanel.add(toolbarEpisode, "2, 2");
+
+      JButton btnCloneEpisode = new JButton();
+      btnCloneEpisode.setAction(new CloneEpisodeAction());
+      toolbarEpisode.add(btnCloneEpisode);
+
+      JButton btnRemoveEpisode = new JButton();
       btnRemoveEpisode.setAction(new RemoveEpisodeAction());
       btnRemoveEpisode.setIcon(IconManager.LIST_REMOVE);
-      episodesPanel.add(btnRemoveEpisode, "2, 4, default, top");
+      toolbarEpisode.add(btnRemoveEpisode);
     }
 
     /**

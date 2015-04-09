@@ -372,9 +372,4 @@ public class TmmUIHelper {
       throw new Exception("open browser is not supported");
     }
   }
-
-  public static void setFlatStyleButton(AbstractButton button){
-    button.putClientProperty("flatButton", true);
-    button.updateUI();
-  }
 }

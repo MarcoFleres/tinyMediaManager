@@ -282,7 +282,6 @@ public class MovieSettingsPanel extends ScrollablePanel {
     panelBadWords.add(tfAddBadword, "2, 6, fill, default");
 
     JButton btnAddBadWord = new JButton(IconManager.LIST_ADD);
-    TmmUIHelper.setFlatStyleButton(btnAddBadWord);
     btnAddBadWord.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -292,10 +291,8 @@ public class MovieSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelBadWords.add(btnAddBadWord, "3, 6");
 
     JButton btnRemoveBadWord = new JButton(IconManager.LIST_REMOVE);
-    TmmUIHelper.setFlatStyleButton(btnRemoveBadWord);
     btnRemoveBadWord.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent arg0) {
@@ -306,7 +303,11 @@ public class MovieSettingsPanel extends ScrollablePanel {
         }
       }
     });
-    panelBadWords.add(btnRemoveBadWord, "4, 6, default, bottom");
+    JToolBar toolbarBadWord = new JToolBar();
+    toolbarBadWord.setFloatable(false);
+    toolbarBadWord.add(btnAddBadWord);
+    toolbarBadWord.add(btnRemoveBadWord);
+    panelBadWords.add(toolbarBadWord, "3, 6");
 
     initDataBindings();
 
