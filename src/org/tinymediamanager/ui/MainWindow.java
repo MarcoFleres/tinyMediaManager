@@ -15,45 +15,13 @@
  */
 package org.tinymediamanager.ui;
 
-import java.awt.AWTEvent;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.event.AWTEventListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.ResourceBundle;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.SwingWorker;
-import javax.swing.SwingWorker.StateValue;
-import javax.swing.Timer;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.JTextComponent;
-
+import ch.swingfx.twinkle.NotificationBuilder;
+import ch.swingfx.twinkle.window.Positions;
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+import com.jtattoo.plaf.BaseRootPaneUI;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,14 +40,25 @@ import org.tinymediamanager.ui.movies.MovieUIModule;
 import org.tinymediamanager.ui.moviesets.MovieSetUIModule;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
-import ch.swingfx.twinkle.NotificationBuilder;
-import ch.swingfx.twinkle.window.Positions;
-
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jtattoo.plaf.BaseRootPaneUI;
+import javax.swing.*;
+import javax.swing.SwingWorker.StateValue;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * The Class MainWindow.
@@ -88,11 +67,13 @@ import com.jtattoo.plaf.BaseRootPaneUI;
  */
 public class MainWindow extends JFrame {
   private static final long           serialVersionUID = 5032542783902644134L;
-  private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control());                   //$NON-NLS-1$
+  private static final ResourceBundle BUNDLE           = ResourceBundle.getBundle("messages", new UTF8Control());                     //$NON-NLS-1$
   private final static Logger         LOGGER           = LoggerFactory.getLogger(MainWindow.class);
 
   public final static Image           LOGO             = Toolkit.getDefaultToolkit().getImage(
                                                            MainWindow.class.getResource("/org/tinymediamanager/ui/images/tmm.png"));
+  public final static Image           SMALL_LOGO       = Toolkit.getDefaultToolkit().getImage(
+                                                           MainWindow.class.getResource("/org/tinymediamanager/ui/images/tmm18.png"));
 
   private static MainWindow           instance;
 
