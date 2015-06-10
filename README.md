@@ -20,7 +20,7 @@ Version 2.6.8 has been released on 08. June 2015.
 ##Screenshots##
 more screenshots at [http://www.tinymediamanager.org/index.php/screenshots/](http://www.tinymediamanager.org/index.php/screenshots/)
 
-###Main panel for movies## 
+###Main panel for movies### 
 
 [![Movie panel](https://github.com/tinyMediaManager/tinyMediaManager/raw/tinyMediaManager-java6/screenshots/movie_panel_main_thumb.jpg)](https://github.com/tinyMediaManager/tinyMediaManager/raw/tinyMediaManager-java6/screenshots/movie_panel_main.jpg)
 
